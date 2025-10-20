@@ -1,12 +1,19 @@
-import express from "express";
+import dotenv from "dotenv";
+dotenv.config();
+import dbConnect from "./DB/db.config.js";
+import app from "./app.js";
 
-const app = express()
-const port = 3000
+const port = process.env.PORT;
 
-app.get("/", (req, res)=>{
-    res.send("Hello World!")
-})
+const server = async () => {
+  try {
+    app.listen(port || 8000, () => {
+      console.log(`✅ Server is running on port ${port} ✅`);
+    });
+  } catch (error) {
+    console.log("❌ Error connectiong Server! ❌", error);
+  }
+};
 
-app.listen(port, ()=>{
-    console.log("Server is running!")
-})
+await server();
+dbConnect();
