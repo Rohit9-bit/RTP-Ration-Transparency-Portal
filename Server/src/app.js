@@ -8,6 +8,6 @@ app.use(express.static("public"));
 
 import userRouter from "./routes/user.route.js";
 
-app.use("/api", userRouter);
+app.use("/register", userRouter);
 
 export default app;
