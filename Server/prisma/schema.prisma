@@ -7,30 +7,22 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model users {
-  user_id     Int          @id @default(autoincrement())
-  first_name  String       @db.VarChar(50)
-  last_name   String       @db.VarChar(50)
-  phone_no    String       @unique @db.VarChar(15)
-  email       String       @unique @db.VarChar(255)
-  address     String
-  password    String
-  beneficiery beneficiery?
-  shop_owner  shop_owner?
-}
 
 model beneficiery {
   beneficiery_id     Int                 @id @default(autoincrement())
-  user               users               @relation(fields: [userId], references: [user_id])
-  userId             Int                 @unique
+  full_name          String
+  email              String
+  phone_no           String
+  password           String
   family_size        Int
   state              String
   district           String
+  address            String
   ration_card_no     String              @unique
-  is_active          Boolean
+  is_active          Boolean?            @default(true)
+  createdAt          DateTime            @default(now())
   distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
   centerId           Int
-  createdAt          DateTime            @default(now())
   quota              quota?
   transaction_log    transaction_log[]
   grieviance         grieviance[]
@@ -38,8 +30,8 @@ model beneficiery {
 
 model shop_owner {
   manager_id          Int                  @id @default(autoincrement())
-  user                users                @relation(fields: [userId], references: [user_id])
-  userId              Int                  @unique
+  owner_id            String
+  password            String
   createdAt           DateTime             @default(now())
   distribution_center distribution_center?
 }

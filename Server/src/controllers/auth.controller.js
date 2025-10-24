@@ -134,15 +134,58 @@ const loginUser = async (req, res) => {
       httpOnly: true,
     });
 
-    res
-      .status(200)
-      .json({ message: "User logged in Succesfully!", user });
+    res.status(200).json({ message: "User logged in Succesfully!", user });
   } catch (error) {
     console.log("Something went wrong in login controller", error);
     res.status(500).json({ message: "Internal Server Error!", error: error });
   }
 };
 
+const logOut = async (req, res) => {
+  res.clearCookies("jwt");
+  res.status(200).json({ message: "User logged out successfully!" });
+};
 
+const shopOwner = async (req, res) => {
+  const { manager_id } = req.body;
 
-export { registerUser, loginUser };
+  try {
+    const owner = await prisma.shop_owner.findFirst({
+      where: {
+        manager_id: manager_id,
+      },
+    });
+
+    if(!owner){
+      return res.status(400).json({message: "Invalid managerId!"})
+    }
+  } catch (error) {}
+};
+
+const generate_ration_card = async (req, res) => {
+  const generatedNumbers = new Set();
+
+  function generateUnique14Digit() {
+    let num;
+    do {
+      num = (Math.floor(Math.random() * 9e13) + 1e13).toString;
+    } while (generatedNumbers.has(num));
+    generatedNumbers.add(num);
+    return num;
+  }
+
+  const newRationCard_number = generateUnique14Digit();
+};
+
+const beneficiary_login = async (req, res) => {
+  const {} = req.body;
+};
+
+export {
+  registerUser,
+  loginUser,
+  logOut,
+  shopOwner,
+  beneficiary_login,
+  generate_ration_card,
+};
