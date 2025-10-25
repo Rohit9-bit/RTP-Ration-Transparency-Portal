@@ -9,7 +9,9 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 import userRouter from "./routes/auth.route.js";
+import ownerRouter from "./routes/ownerAuth.route.js";
 
-app.use("/user", userRouter);
+app.use("/beneficiary", userRouter);
+app.use("/manager", ownerRouter);
 
 export default app;

@@ -7,7 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model beneficiery {
   beneficiery_id     Int                 @id @default(autoincrement())
   full_name          String
@@ -30,6 +29,12 @@ model beneficiery {
 
 model shop_owner {
   manager_id          Int                  @id @default(autoincrement())
+  full_name           String
+  email               String
+  phone_no            String
+  state               String
+  district            String
+  address             String
   owner_id            String
   password            String
   createdAt           DateTime             @default(now())
