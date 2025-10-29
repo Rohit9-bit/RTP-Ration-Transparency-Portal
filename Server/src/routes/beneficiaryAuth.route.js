@@ -1,10 +1,11 @@
 import { Router } from "express";
 import {
+
   registerBeneficiary,
-} from "../controllers/auth.controller.js";
+} from "../controllers/beneficiaryAuth.controller.js";
 
 const router = Router();
 
-router.route("/register").post(registerBeneficiary)
+router.route("/register").post(registerBeneficiary);
 
 export default router;

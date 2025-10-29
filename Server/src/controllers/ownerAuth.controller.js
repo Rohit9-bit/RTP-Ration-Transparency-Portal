@@ -48,17 +48,19 @@ const registerShopOwner = async (req, res) => {
       },
     });
 
-    if (shopOwner || shopOwner === undefined || shopOwner === null) {
+    console.log(shopOwner)
+
+    if (shopOwner) {
       return res
         .status(401)
         .json({ message: "Owner with this email or ownerId already exists!" });
     }
 
-    if (phone_no > 10 || shopOwner?.phone_no) {
+    if (phone_no.length > 10 || phone_no.length < 10 || shopOwner?.phone_no) {
       return res.status(401).json({ message: "Invalid phone number!" });
     }
 
-    if (password < 8) {
+    if (password.length < 8) {
       return res.status(401).json({ message: "Password must be of 8 digits!" });
     }
 
@@ -89,7 +91,7 @@ const registerShopOwner = async (req, res) => {
       httpOnly: true,
     });
 
-    res.status(201).json({ message: "Owner created successfully!" });
+    res.status(201).json({ message: "Owner created successfully!", newShopOwner });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error!" });
