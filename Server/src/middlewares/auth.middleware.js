@@ -35,7 +35,9 @@ const protectedRoute = async (req, res, next) => {
     });
 
     if (!beneficiary) {
-      return res.status(409).json({ message: "Unauthorized!, No user found!" });
+      return res
+        .status(409)
+        .json({ message: "Unauthorized!, No Beneficiary found!" });
     }
 
     req.beneficiary = beneficiary;
@@ -47,4 +49,49 @@ const protectedRoute = async (req, res, next) => {
   }
 };
 
-export { protectedRoute };
+const protectedRouteManager = async (req, res, next) => {
+  try {
+    const token =
+      req.cookies?.jwt || req.header("Authorization").replace("Bearer", "");
+
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized, Request!" });
+    }
+
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    if (!decodedToken) {
+      return res.status(409).json({ message: "Unauthorized, Invalid token!" });
+    }
+
+    const shopOwner = await prisma.shop_owner.findFirst({
+      where: {
+        manager_id: decodedToken.managerId,
+      },
+      select: {
+        full_name: true,
+        email: true,
+        phone_no: true,
+        state: true,
+        district: true,
+        address: true,
+      }
+    });
+
+    if (!shopOwner) {
+      return res
+        .status(409)
+        .json({ message: "Unauthorized, Manager Not Found!" });
+    }
+
+    req.shopOwner = shopOwner;
+
+    next();
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({ message: "Error in ProtectedRouteManager middleware!" });
+  }
+};
+
+export { protectedRoute, protectedRouteManager };

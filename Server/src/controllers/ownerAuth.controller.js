@@ -126,7 +126,7 @@ const loginManager = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { ownerId: owner.owner_id },
+      { managerId: owner.manager_id },
       process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );
