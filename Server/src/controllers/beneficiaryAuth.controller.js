@@ -94,11 +94,9 @@ const registerBeneficiary = async (req, res) => {
     });
 
     if (beneficiary_with_rationCard) {
-      return res
-        .status(409)
-        .json({
-          message: "Beneficiary already exists with this ration card number!",
-        });
+      return res.status(409).json({
+        message: "Beneficiary already exists with this ration card number!",
+      });
     }
 
     const salt = await bcrypt.genSalt(13);
@@ -139,4 +137,63 @@ const registerBeneficiary = async (req, res) => {
   }
 };
 
-export { registerBeneficiary };
+const loginBeneficiary = async (req, res) => {
+  const { rationCardNo, password } = req.body;
+  try {
+    if (!rationCardNo || !password) {
+      return res.status(400).json({
+        message: "Please enter your Ration Card Number and Password!",
+      });
+    }
+
+    if (rationCardNo.length > 15 || rationCardNo.length < 15) {
+      return res
+        .status(400)
+        .json({ message: "Please Enter valid Ration Card Number!" });
+    }
+
+    const user = await prisma.beneficiery.findFirst({
+      where: {
+        ration_card_no: rationCardNo,
+      },
+    });
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ message: "Invalid Ration Card Number or Password!" });
+    }
+
+    const check_password = await bcrypt.compare(password, user.password);
+    if (!check_password) {
+      return res
+        .status(409)
+        .json({ message: "Invalid Ration Card Number or Password!" });
+    }
+
+    const token = jwt.sign(
+      { beneficiery_id: user.beneficiery_id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("jwt", token, {
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      httpOnly: true,
+    });
+
+    res
+      .status(200)
+      .json({ message: "Beneficiary logged in successfully!", user });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error!" });
+  }
+};
+
+const logOutBeneficiary = async (req, res) => {
+  res.clearCookie("jwt");
+  res.status(200).json({ message: "logged out successfully!" });
+};
+
+export { registerBeneficiary, loginBeneficiary, logOutBeneficiary };

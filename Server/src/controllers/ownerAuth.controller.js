@@ -48,7 +48,7 @@ const registerShopOwner = async (req, res) => {
       },
     });
 
-    console.log(shopOwner)
+    console.log(shopOwner);
 
     if (shopOwner) {
       return res
@@ -91,7 +91,9 @@ const registerShopOwner = async (req, res) => {
       httpOnly: true,
     });
 
-    res.status(201).json({ message: "Owner created successfully!", newShopOwner });
+    res
+      .status(201)
+      .json({ message: "Owner created successfully!", newShopOwner });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error!" });
@@ -99,15 +101,14 @@ const registerShopOwner = async (req, res) => {
 };
 
 const loginManager = async (req, res) => {
+  const { ownerId, password } = req.body;
+  try {
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error!" });
+  }
+};
 
-}
-
-
-const logOutManager = async (req, res) => {
-
-}
-
-
-
+const logOutManager = async (req, res) => {};
 
 export { registerShopOwner, loginManager, logOutManager };
