@@ -192,8 +192,13 @@ const loginBeneficiary = async (req, res) => {
 };
 
 const logOutBeneficiary = async (req, res) => {
-  res.clearCookie("jwt");
-  res.status(200).json({ message: "logged out successfully!" });
+  try {
+    res.clearCookie("jwt");
+    res.status(200).json({ message: "logged out successfully!" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error!" });
+  }
 };
 
 export { registerBeneficiary, loginBeneficiary, logOutBeneficiary };

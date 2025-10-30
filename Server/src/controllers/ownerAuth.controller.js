@@ -103,12 +103,54 @@ const registerShopOwner = async (req, res) => {
 const loginManager = async (req, res) => {
   const { ownerId, password } = req.body;
   try {
+    if (!ownerId || !password) {
+      return res
+        .status(400)
+        .json({ message: "Please enter ownerId and password!" });
+    }
+
+    const owner = await prisma.shop_owner.findFirst({
+      where: {
+        owner_id: ownerId,
+      },
+    });
+
+    if (!owner) {
+      return res.status(409).json({ message: "Invalid ownerId or password!" });
+    }
+
+    const checkPassword = await bcrypt.compare(password, owner.password);
+
+    if (!checkPassword) {
+      return res.status(409).json({ message: "Invalid ownerId or password!" });
+    }
+
+    const token = jwt.sign(
+      { ownerId: owner.owner_id },
+      process.env.JWT_SECRET_KEY,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({ message: "Logged in successfully!" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error!" });
   }
 };
 
-const logOutManager = async (req, res) => {};
+const logOutManager = async (req, res) => {
+  try {
+    res.clearCookie("jwt");
+    res.status(200).json({ message: "logged out successfully!" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error!" });
+  }
+};
 
 export { registerShopOwner, loginManager, logOutManager };

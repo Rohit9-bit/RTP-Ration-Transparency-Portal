@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
-import { prisma } from "../DB/db.config";
+import { prisma } from "../DB/db.config.js";
 
-const protectRoute = async (req, res, next) => {
+const protectedRoute = async (req, res, next) => {
   try {
     const token =
       req.cookies?.jwt || req.header("Authorization")?.replace("Bearer ", "");
@@ -47,4 +47,4 @@ const protectRoute = async (req, res, next) => {
   }
 };
 
-export { protectRoute };
+export { protectedRoute };

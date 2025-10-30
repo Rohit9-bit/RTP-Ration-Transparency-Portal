@@ -1,11 +1,15 @@
 import { Router } from "express";
-import { registerShopOwner, loginManager, logOutManager } from "../controllers/ownerAuth.controller.js";
+import {
+  registerShopOwner,
+  loginManager,
+  logOutManager,
+} from "../controllers/ownerAuth.controller.js";
+import { protectedRoute } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.route("/register").post(registerShopOwner)
-router.route("/login").post(loginManager)
-router.route("/logout").post(logOutManager)
-
+router.route("/register").post(registerShopOwner);
+router.route("/login").post(loginManager);
+router.route("/logout").post(protectedRoute, logOutManager);
 
 export default router;
