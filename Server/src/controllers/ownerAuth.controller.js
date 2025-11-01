@@ -1,6 +1,7 @@
 import { prisma } from "../DB/db.config.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import { customAlphabet } from "nanoid";
 
 const registerShopOwner = async (req, res) => {
   const {
@@ -64,11 +65,14 @@ const registerShopOwner = async (req, res) => {
       return res.status(401).json({ message: "Password must be of 8 digits!" });
     }
 
+    const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
+    const id = "MANA" + generateNumericId();
     const salt = await bcrypt.genSalt(13);
     const hashed_password = await bcrypt.hash(password, salt);
 
     const newShopOwner = await prisma.shop_owner.create({
       data: {
+        manager_id: id,
         full_name: fullName,
         email,
         phone_no,

@@ -1,6 +1,7 @@
 import { prisma } from "../DB/db.config.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { customAlphabet } from "nanoid";
 
 const registerBeneficiary = async (req, res) => {
   const {
@@ -8,6 +9,7 @@ const registerBeneficiary = async (req, res) => {
     email,
     phone_no,
     password,
+    security_PIN,
     family_size,
     state,
     district,
@@ -22,6 +24,7 @@ const registerBeneficiary = async (req, res) => {
       email,
       phone_no,
       password,
+      security_PIN,
       family_size,
       state,
       district,
@@ -73,7 +76,7 @@ const registerBeneficiary = async (req, res) => {
       return res.status(409).json({ message: "Phone Number already exists!" });
     }
 
-    if (family_size > 20) {
+    if (family_size > 20 || family_size < 2) {
       return res.status(400).json({ message: "Family size is not valid!" });
     }
 
@@ -81,6 +84,12 @@ const registerBeneficiary = async (req, res) => {
       return res
         .status(400)
         .json({ message: "Password must be of 8 characters!" });
+    }
+
+    if (security_PIN.length > 4 || security_PIN.length < 4) {
+      return res
+        .status(400)
+        .json({ message: "security pin must be of 4 digits!" });
     }
 
     if (rationCardNo.length > 15 || rationCardNo.length < 15) {
@@ -99,15 +108,20 @@ const registerBeneficiary = async (req, res) => {
       });
     }
 
+    const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
+    const id = "BENE" + generateNumericId();
     const salt = await bcrypt.genSalt(13);
     const hashed_password = await bcrypt.hash(password, salt);
+    
 
     const newBeneficiary = await prisma.beneficiery.create({
       data: {
+        beneficiery_id: id,
         full_name: fullName,
         email,
         phone_no,
         password: hashed_password,
+        security_PIN: security_PIN,
         family_size,
         state,
         district,
@@ -152,13 +166,13 @@ const loginBeneficiary = async (req, res) => {
         .json({ message: "Please Enter valid Ration Card Number!" });
     }
 
-    const user = await prisma.beneficiery.findFirst({
+    const beneficiary = await prisma.beneficiery.findFirst({
       where: {
         ration_card_no: rationCardNo,
       },
     });
 
-    if (!user) {
+    if (!beneficiary) {
       return res
         .status(401)
         .json({ message: "Invalid Ration Card Number or Password!" });
@@ -172,7 +186,7 @@ const loginBeneficiary = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { beneficiery_id: user.beneficiery_id },
+      { beneficiery_id: beneficiary.beneficiery_id },
       process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );

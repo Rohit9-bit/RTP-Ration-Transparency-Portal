@@ -21,6 +21,7 @@ const protectedRoute = async (req, res, next) => {
         beneficiery_id: decodedToken.beneficiery_id,
       },
       select: {
+        beneficiery_id: true,
         full_name: true,
         email: true,
         phone_no: true,
@@ -52,7 +53,7 @@ const protectedRoute = async (req, res, next) => {
 const protectedRouteManager = async (req, res, next) => {
   try {
     const token =
-      req.cookies?.jwt || req.header("Authorization").replace("Bearer", "");
+      req.cookies?.jwt || req.header("Authorization")?.replace("Bearer", "");
 
     if (!token) {
       return res.status(401).json({ message: "Unauthorized, Request!" });
@@ -68,6 +69,7 @@ const protectedRouteManager = async (req, res, next) => {
         manager_id: decodedToken.managerId,
       },
       select: {
+        manager_id: true,
         full_name: true,
         email: true,
         phone_no: true,

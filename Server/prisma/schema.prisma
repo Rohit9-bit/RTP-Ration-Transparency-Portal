@@ -8,7 +8,7 @@ datasource db {
 }
 
 model beneficiery {
-  beneficiery_id     Int                 @id @default(autoincrement())
+  beneficiery_id     String              @id
   full_name          String
   email              String
   phone_no           String
@@ -19,16 +19,17 @@ model beneficiery {
   address            String
   ration_card_no     String              @unique
   is_active          Boolean?            @default(true)
+  security_PIN       Int
   createdAt          DateTime            @default(now())
   distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
-  centerId           Int
+  centerId           String
   quota              quota?
   transaction_log    transaction_log[]
   grieviance         grieviance[]
 }
 
 model shop_owner {
-  manager_id          Int                  @id @default(autoincrement())
+  manager_id          String               @id
   full_name           String
   email               String
   phone_no            String
@@ -42,13 +43,13 @@ model shop_owner {
 }
 
 model distribution_center {
-  center_id         Int                 @id @default(autoincrement())
+  center_id         String              @id
   address           String
   center_name       String
   state             String
   district          String
   shopOwner         shop_owner          @relation(fields: [managerId], references: [manager_id])
-  managerId         Int                 @unique
+  managerId         String              @unique
   beneficiery       beneficiery[]
   transaction_log   transaction_log[]
   shop_stock_ledger shop_stock_ledger[]
@@ -56,62 +57,62 @@ model distribution_center {
 }
 
 model commodity {
-  commodity_id    Int               @id @default(autoincrement())
+  commodity_id    String            @id
   commodity_name  String
   unit            String
   createdAt       DateTime          @default(now())
   quota           quota             @relation(fields: [quotaId], references: [quota_id])
-  quotaId         Int               @unique
+  quotaId         String            @unique
   transaction_log transaction_log[]
   shop_stock      shop_stock_ledger @relation(fields: [ledgerId], references: [ledger_id])
-  ledgerId        Int
+  ledgerId        String
 }
 
 model quota {
-  quota_id           Int         @id @default(autoincrement())
+  quota_id           String      @id
   month_year         DateTime    @default(now())
   quantity_entitled  Float
   quantity_remaining Float
   beneficiery        beneficiery @relation(fields: [beneficieryId], references: [beneficiery_id])
-  beneficieryId      Int         @unique
+  beneficieryId      String      @unique
   commodity          commodity[]
 }
 
 model transaction_log {
-  transaction_id             Int                 @id @default(autoincrement())
+  transaction_id             String              @id
   quantity_entitled          Float
   quantity_received          Float
   is_verified_by_beneficiery Boolean
   anomaly_type               String[]            @default(["T_hour", "Q_var"])
   beneficiery                beneficiery         @relation(fields: [beneficieryId], references: [beneficiery_id])
-  beneficieryId              Int
+  beneficieryId              String
   distributionCenter         distribution_center @relation(fields: [centerId], references: [center_id])
-  centerId                   Int
+  centerId                   String
   commodity                  commodity           @relation(fields: [commodityId], references: [commodity_id])
-  commodityId                Int
+  commodityId                String
   createdAt                  DateTime            @default(now())
   updatedAt                  DateTime            @default(now())
 }
 
 model shop_stock_ledger {
-  ledger_id          Int                 @id @default(autoincrement())
+  ledger_id          String              @id
   stock_in_quantity  Float
   stock_out_quantity Float
   distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
-  centerId           Int
+  centerId           String
   createdAt          DateTime            @default(now())
   commodity          commodity[]
 }
 
 model grieviance {
-  grieviance_id      Int                 @id @default(autoincrement())
+  grieviance_id      String              @id
   issue_type         String
   description        String
   status             String[]            @default(["New", "In Review", "Closed"])
   distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
-  centerId           Int
+  centerId           String
   beneficiery        beneficiery         @relation(fields: [beneficieryId], references: [beneficiery_id])
-  beneficieryId      Int
+  beneficieryId      String
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @default(now())
 }
