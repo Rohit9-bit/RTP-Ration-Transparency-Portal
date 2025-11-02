@@ -48,7 +48,7 @@ const registerBeneficiary = async (req, res) => {
         .json({ message: "Please Enter valid email Address!" });
     }
 
-    const beneficiary_with_email = await prisma.beneficiery.findFirst({
+    const beneficiary_with_email = await prisma.beneficiary.findFirst({
       where: {
         email: email,
       },
@@ -66,7 +66,7 @@ const registerBeneficiary = async (req, res) => {
         .json({ message: "Phone number must be of 10 digits!" });
     }
 
-    const beneficiary_with_phone = await prisma.beneficiery.findFirst({
+    const beneficiary_with_phone = await prisma.beneficiary.findFirst({
       where: {
         phone_no: phone_no,
       },
@@ -96,7 +96,7 @@ const registerBeneficiary = async (req, res) => {
       return res.status(400).json({ message: "Invalid ration card Number!" });
     }
 
-    const beneficiary_with_rationCard = await prisma.beneficiery.findFirst({
+    const beneficiary_with_rationCard = await prisma.beneficiary.findFirst({
       where: {
         ration_card_no: rationCardNo,
       },
@@ -114,9 +114,9 @@ const registerBeneficiary = async (req, res) => {
     const hashed_password = await bcrypt.hash(password, salt);
     
 
-    const newBeneficiary = await prisma.beneficiery.create({
+    const newBeneficiary = await prisma.beneficiary.create({
       data: {
-        beneficiery_id: id,
+        beneficiary_id: id,
         full_name: fullName,
         email,
         phone_no,
@@ -132,7 +132,7 @@ const registerBeneficiary = async (req, res) => {
     });
 
     const token = jwt.sign(
-      { beneficiery_id: newBeneficiary.beneficiery_id },
+      { beneficiary_id: newBeneficiary.beneficiary_id },
       process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );
@@ -166,7 +166,7 @@ const loginBeneficiary = async (req, res) => {
         .json({ message: "Please Enter valid Ration Card Number!" });
     }
 
-    const beneficiary = await prisma.beneficiery.findFirst({
+    const beneficiary = await prisma.beneficiary.findFirst({
       where: {
         ration_card_no: rationCardNo,
       },
@@ -186,7 +186,7 @@ const loginBeneficiary = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { beneficiery_id: beneficiary.beneficiery_id },
+      { beneficiery_id: beneficiary.beneficiary_id },
       process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );

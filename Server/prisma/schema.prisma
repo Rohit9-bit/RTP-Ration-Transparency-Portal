@@ -7,8 +7,8 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model beneficiery {
-  beneficiery_id     String              @id
+model beneficiary {
+  beneficiary_id     String              @id @unique
   full_name          String
   email              String
   phone_no           String
@@ -20,16 +20,16 @@ model beneficiery {
   ration_card_no     String              @unique
   is_active          Boolean?            @default(true)
   security_PIN       Int
-  createdAt          DateTime            @default(now())
+  createdAt          DateTime            @default(dbgenerated())
   distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
   centerId           String
-  quota              quota?
-  transaction_log    transaction_log[]
-  grieviance         grieviance[]
+  quotas             quota[]
+  transaction_logs   transaction_log[]
+  grieviances        grieviance[]
 }
 
 model shop_owner {
-  manager_id          String               @id
+  manager_id          String               @id @unique
   full_name           String
   email               String
   phone_no            String
@@ -38,81 +38,83 @@ model shop_owner {
   address             String
   owner_id            String
   password            String
-  createdAt           DateTime             @default(now())
+  createdAt           DateTime             @default(dbgenerated())
   distribution_center distribution_center?
 }
 
 model distribution_center {
-  center_id         String              @id
-  address           String
-  center_name       String
-  state             String
-  district          String
-  shopOwner         shop_owner          @relation(fields: [managerId], references: [manager_id])
-  managerId         String              @unique
-  beneficiery       beneficiery[]
-  transaction_log   transaction_log[]
-  shop_stock_ledger shop_stock_ledger[]
-  grieviance        grieviance[]
+  center_id          String              @id @unique
+  address            String
+  center_name        String
+  state              String
+  district           String
+  shopOwner          shop_owner          @relation(fields: [managerId], references: [manager_id])
+  managerId          String              @unique
+  beneficiaries      beneficiary[]
+  transaction_logs   transaction_log[]
+  shop_stock_ledgers shop_stock_ledger[]
+  grieviances        grieviance[]
 }
 
 model commodity {
-  commodity_id    String            @id
-  commodity_name  String
-  unit            String
-  createdAt       DateTime          @default(now())
-  quota           quota             @relation(fields: [quotaId], references: [quota_id])
-  quotaId         String            @unique
-  transaction_log transaction_log[]
-  shop_stock      shop_stock_ledger @relation(fields: [ledgerId], references: [ledger_id])
-  ledgerId        String
+  commodity_id      String              @id @unique
+  commodity_name    String
+  unit              String
+  createdAt         DateTime            @default(dbgenerated())
+  transaction_log   transaction_log[]
+  shop_stock_ledger shop_stock_ledger[]
+  quotas            quota[]
 }
 
 model quota {
-  quota_id           String      @id
-  month_year         DateTime    @default(now())
+  quota_id           String      @id @unique
+  month_year         DateTime    @default(dbgenerated())
   quantity_entitled  Float
   quantity_remaining Float
-  beneficiery        beneficiery @relation(fields: [beneficieryId], references: [beneficiery_id])
-  beneficieryId      String      @unique
-  commodity          commodity[]
+  beneficiary        beneficiary @relation(fields: [beneficiaryId], references: [beneficiary_id])
+  beneficiaryId      String
+  commodity          commodity   @relation(fields: [commodityId], references: [commodity_id])
+  commodityId        String
+
+  @@unique([beneficiaryId, commodityId, month_year])
 }
 
 model transaction_log {
-  transaction_id             String              @id
+  transaction_id             String              @id @unique
   quantity_entitled          Float
   quantity_received          Float
   is_verified_by_beneficiery Boolean
-  anomaly_type               String[]            @default(["T_hour", "Q_var"])
-  beneficiery                beneficiery         @relation(fields: [beneficieryId], references: [beneficiery_id])
-  beneficieryId              String
+  anomaly_type               String?
+  beneficiary                beneficiary         @relation(fields: [beneficiaryId], references: [beneficiary_id])
+  beneficiaryId              String
   distributionCenter         distribution_center @relation(fields: [centerId], references: [center_id])
   centerId                   String
   commodity                  commodity           @relation(fields: [commodityId], references: [commodity_id])
   commodityId                String
-  createdAt                  DateTime            @default(now())
-  updatedAt                  DateTime            @default(now())
+  createdAt                  DateTime            @default(dbgenerated())
+  updatedAt                  DateTime            @default(dbgenerated())
 }
 
 model shop_stock_ledger {
-  ledger_id          String              @id
+  ledger_id          String              @id @unique
   stock_in_quantity  Float
   stock_out_quantity Float
   distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
   centerId           String
-  createdAt          DateTime            @default(now())
-  commodity          commodity[]
+  createdAt          DateTime            @default(dbgenerated())
+  commodity          commodity           @relation(fields: [commodityId], references: [commodity_id])
+  commodityId        String
 }
 
 model grieviance {
-  grieviance_id      String              @id
+  grieviance_id      String              @id @unique
   issue_type         String
   description        String
   status             String[]            @default(["New", "In Review", "Closed"])
   distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
   centerId           String
-  beneficiery        beneficiery         @relation(fields: [beneficieryId], references: [beneficiery_id])
-  beneficieryId      String
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @default(now())
+  beneficiary        beneficiary         @relation(fields: [beneficiaryId], references: [beneficiary_id])
+  beneficiaryId      String
+  createdAt          DateTime            @default(dbgenerated())
+  updatedAt          DateTime            @default(dbgenerated())
 }

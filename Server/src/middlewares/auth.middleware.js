@@ -16,7 +16,7 @@ const protectedRoute = async (req, res, next) => {
       return res.status(401).json({ message: "Unauthorized!, Invalid token!" });
     }
 
-    const beneficiary = await prisma.beneficiery.findFirst({
+    const beneficiary = await prisma.beneficiary.findFirst({
       where: {
         beneficiery_id: decodedToken.beneficiery_id,
       },
@@ -76,6 +76,11 @@ const protectedRouteManager = async (req, res, next) => {
         state: true,
         district: true,
         address: true,
+        distribution_center: {
+          select: {
+            center_id: true
+          }
+        }
       }
     });
 
