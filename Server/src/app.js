@@ -11,11 +11,18 @@ app.use(cookieParser());
 import userRouter from "./routes/beneficiaryAuth.route.js";
 import ownerRouter from "./routes/ownerAuth.route.js";
 import transactionRouter from "./routes/transaction.route.js";
+import transactionHistory from "./routes/transactionHistory.route.js";
 
-
+// Beneficiary routes
 app.use("/beneficiary", userRouter);
+app.use("/beneficiary/transaction", transactionHistory);
+app.use("/grievance")
+
+
+// Managers routes
 app.use("/manager", ownerRouter);
-app.use("/transaction", transactionRouter);
+app.use("/manager/transaction", transactionRouter);
+
 
 
 

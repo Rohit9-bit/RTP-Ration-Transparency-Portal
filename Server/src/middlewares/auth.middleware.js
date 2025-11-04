@@ -18,10 +18,10 @@ const protectedRoute = async (req, res, next) => {
 
     const beneficiary = await prisma.beneficiary.findFirst({
       where: {
-        beneficiery_id: decodedToken.beneficiery_id,
+        beneficiary_id: decodedToken.beneficiary_id,
       },
       select: {
-        beneficiery_id: true,
+        beneficiary_id: true,
         full_name: true,
         email: true,
         phone_no: true,
@@ -78,10 +78,10 @@ const protectedRouteManager = async (req, res, next) => {
         address: true,
         distribution_center: {
           select: {
-            center_id: true
-          }
-        }
-      }
+            center_id: true,
+          },
+        },
+      },
     });
 
     if (!shopOwner) {

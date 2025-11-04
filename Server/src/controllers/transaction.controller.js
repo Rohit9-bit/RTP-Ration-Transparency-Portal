@@ -26,15 +26,61 @@ const transactionController = async (req, res) => {
         .json({ message: "Please enter the commodities amount!" });
     }
 
+    const transactionData = await prisma.transaction_log.findMany({
+      where: {
+        beneficiaryId: beneficiary.beneficiary_id,
+      },
+    });
+
+    if (transactionData[0]) {
+      const createdAt = new Date(transactionData[0].createdAt);
+      const now = new Date();
+      if (
+        createdAt.getMonth() === now.getMonth() &&
+        createdAt.getFullYear() === now.getFullYear()
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Beneficiary has already received ration!" });
+      }
+    }
+
+    const beneficiary_quota = await prisma.quota.findMany({
+      where: { beneficiaryId: beneficiary.beneficiary_id },
+      select: {
+        quantity_entitled: true,
+        commodityId: true,
+      },
+    });
+
+    for (const quota of beneficiary_quota) {
+      for (const commoditiesReceive of commoditiesReceived) {
+        if (
+          commoditiesReceive.commodityId === quota.commodityId &&
+          commoditiesReceive.quantity_receive > quota.quantity_entitled
+        ) {
+          return res
+            .status(400)
+            .json({ message: "Exceeds Beneficiary Entitlement!" });
+        }
+      }
+    }
+
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
 
-    commoditiesReceived.forEach(async (commodityRecieve) => {
+    const transactionIds = [];
+
+    for (const commoditiesReceive of commoditiesReceived) {
       const quotaRecords = await prisma.quota.findFirst({
         where: {
           beneficiaryId: beneficiary.beneficiary_id,
-          commodityId: commodityRecieve.commodityId,
+          commodityId: commoditiesReceive.commodityId,
         },
       });
+
+      if (!quotaRecords) {
+        return res.status(404).json({ message: "Record for quota not found!" });
+      }
 
       const quantity_entitled = quotaRecords.quantity_entitled;
       const quantity_remaining = quotaRecords.quantity_remaining;
@@ -42,18 +88,24 @@ const transactionController = async (req, res) => {
       const shop_stock = await prisma.shop_stock_ledger.findFirst({
         where: {
           centerId: shopOwnereDetails.distribution_center.center_id,
-          commodityId: commodityRecieve.commodityId,
+          commodityId: commoditiesReceive.commodityId,
         },
       });
 
-      if (commodityRecieve.quantity_receive > shop_stock.stock_in_quantity) {
+      if (!shop_stock) {
+        return res
+          .status(404)
+          .json({ message: "shop_stock not found for this commodity!" });
+      }
+
+      if (commoditiesReceive.quantity_receive > shop_stock.stock_in_quantity) {
         return res.status(400).json({ message: "Insufficient Stock!" });
       }
 
-      if (commodityRecieve.quantity_receive > quantity_remaining) {
+      if (commoditiesReceive.quantity_receive > quantity_remaining) {
         return res
           .status(400)
-          .json({ message: "Exceeds Beneficiary Entitlement" });
+          .json({ message: "Exceeds Beneficiary Entitlement!" });
       }
 
       const result = await prisma.$transaction(async (tx) => {
@@ -61,76 +113,73 @@ const transactionController = async (req, res) => {
           data: {
             transaction_id: "TRANS" + generateNumericId(),
             quantity_entitled: quantity_entitled,
-            quantity_received: commodityRecieve.quantity_receive,
-            is_verified_by_beneficiery: true,
+            quantity_received: commoditiesReceive.quantity_receive,
+            is_verified_by_beneficiery: false,
             beneficiaryId: beneficiary.beneficiary_id,
             centerId: shopOwnereDetails.distribution_center.center_id,
-            commodityId: commodityRecieve.commodityId,
+            commodityId: commoditiesReceive.commodityId,
             anomaly_type: null,
           },
         });
 
         const updateQuota = await tx.quota.update({
           where: {
-            beneficiaryId: beneficiary.beneficiary_id,
-            commodityId: commodityRecieve.commodityId,
             quota_id: quotaRecords.quota_id,
           },
           data: {
             quantity_remaining:
-              quantity_remaining - commodityRecieve.quantity_receive,
+              quantity_remaining - commoditiesReceive.quantity_receive,
           },
         });
 
         const update_Shop_stock = await tx.shop_stock_ledger.update({
           where: {
-            centerId: shopOwnereDetails.distribution_center.center_id,
-            commodityId: commodityRecieve.commodityId,
             ledger_id: shop_stock.ledger_id,
           },
           data: {
             stock_in_quantity:
-              shop_stock.stock_in_quantity - commodityRecieve.quantity_receive,
+              shop_stock.stock_in_quantity -
+              commoditiesReceive.quantity_receive,
             stock_out_quantity:
-              shop_stock.stock_out_quantity + commodityRecieve.quantity_receive,
+              shop_stock.stock_out_quantity +
+              commoditiesReceive.quantity_receive,
           },
         });
 
         return { new_Transaction_log, updateQuota, update_Shop_stock };
       });
 
-      console.log("result: ", result);
+      transactionIds.push(result.new_Transaction_log.transaction_id);
 
-      const transaction_log = await prisma.transaction_log.findFirst({
+      const anomalyCheck = await prisma.transaction_log.findFirst({
         where: {
-          beneficiaryId: beneficiary.beneficiary_id,
-          commodityId: commodityRecieve.commodityId,
-          centerId: shopOwnereDetails.distribution_center.center_id,
+          transaction_id: result.new_Transaction_log.transaction_id,
         },
         select: {
           quantity_received: true,
         },
       });
 
-      if (transaction_log.quantity_received < quantity_entitled) {
+      if (anomalyCheck.quantity_received < quantity_entitled) {
         await prisma.transaction_log.update({
           where: {
-            beneficiaryId: beneficiary.beneficiary_id,
-            commodityId: commodityRecieve.commodityId,
-            centerId: shopOwnereDetails.distribution_center.center_id,
+            transaction_id: result.new_Transaction_log.transaction_id,
           },
           data: {
-            anomaly_type: "Quantity Varience",
+            anomaly_type: "Quantity Variance!",
           },
         });
       }
+    }
 
-      return res.status(200).json({
-        success: true,
-        message: "Transactions recorded successfully.",
-        transactionIds: [result.new_Transaction_log.transaction_id],
-      });
+    console.log("Records of Transaction: ", transactionIds);
+
+    return res.status(200).json({
+      success: true,
+      message: "Transactions recorded successfully.",
+      transactionIds,
     });
+    
   } catch (error) {
     console.log(error);
     res.status(500).json({

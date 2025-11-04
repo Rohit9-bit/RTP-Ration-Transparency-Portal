@@ -186,7 +186,7 @@ const loginBeneficiary = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { beneficiery_id: beneficiary.beneficiary_id },
+      { beneficiary_id: beneficiary.beneficiary_id },
       process.env.JWT_SECRET_KEY,
       { expiresIn: "7d" }
     );
