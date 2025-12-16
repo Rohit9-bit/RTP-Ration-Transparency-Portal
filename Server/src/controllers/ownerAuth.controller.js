@@ -57,12 +57,9 @@ const registerShopOwner = async (req, res) => {
         .json({ message: "Owner with this email or ownerId already exists!" });
     }
 
-    if (phone_no.length > 10 || phone_no.length < 10 || shopOwner?.phone_no) {
+    const mobile_number_regex = /^\d{10}$/;
+    if(mobile_number_regex.test(phone_no)){
       return res.status(401).json({ message: "Invalid phone number!" });
-    }
-
-    if (password.length < 8) {
-      return res.status(401).json({ message: "Password must be of 8 digits!" });
     }
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix

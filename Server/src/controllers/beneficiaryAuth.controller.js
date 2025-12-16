@@ -54,16 +54,21 @@ const registerBeneficiary = async (req, res) => {
       },
     });
 
-    if (beneficiary_with_email) {
+    const shop_Owner_with_this_email = await prisma.shop_owner.findFirst({
+      where: {
+        email: email,
+      }
+    })
+
+    if (beneficiary_with_email || shop_Owner_with_this_email) {
       return res
         .status(409)
-        .json({ message: "Beneficiary already exist with this email!" });
+        .json({ message: "Invalid email Address!" });
     }
 
-    if (phone_no.length > 10 || phone_no.length < 10) {
-      return res
-        .status(400)
-        .json({ message: "Phone number must be of 10 digits!" });
+    const mobile_number_regex = /^\d{10}$/;
+    if(mobile_number_regex.test(phone_no)){
+      return res.status(401).json({ message: "Invalid phone number!" });
     }
 
     const beneficiary_with_phone = await prisma.beneficiary.findFirst({
@@ -72,12 +77,18 @@ const registerBeneficiary = async (req, res) => {
       },
     });
 
-    if (beneficiary_with_phone) {
-      return res.status(409).json({ message: "Phone Number already exists!" });
+    const shop_owner_with_this_number = await prisma.shop_owner.findFirst({
+      where: {
+        phone_no: phone_no,
+      }
+    });
+
+    if (beneficiary_with_phone || shop_owner_with_this_number) {
+      return res.status(409).json({ message: "Inalid mobile number!" });
     }
 
-    if (family_size > 20 || family_size < 2) {
-      return res.status(400).json({ message: "Family size is not valid!" });
+    if (family_size > 20 || family_size < 1) {
+      return res.status(400).json({ message: "Please enter correct family size!" });
     }
 
     if (password.length < 8) {
@@ -110,6 +121,7 @@ const registerBeneficiary = async (req, res) => {
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
     const id = "BENE" + generateNumericId();
+    const full_Ration_card_number = "RCN"+ rationCardNo;
     const salt = await bcrypt.genSalt(13);
     const hashed_password = await bcrypt.hash(password, salt);
     
@@ -126,7 +138,7 @@ const registerBeneficiary = async (req, res) => {
         state,
         district,
         address,
-        ration_card_no: rationCardNo,
+        ration_card_no: full_Ration_card_number,
         centerId: centerId,
       },
     });

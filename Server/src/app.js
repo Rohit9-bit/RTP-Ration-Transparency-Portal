@@ -12,18 +12,19 @@ import userRouter from "./routes/beneficiaryAuth.route.js";
 import ownerRouter from "./routes/ownerAuth.route.js";
 import transactionRouter from "./routes/transaction.route.js";
 import transactionHistory from "./routes/transactionHistory.route.js";
+import grievanceRouter from "./routes/grievance.route.js";
+import aggregatedDataRouter from "./routes/aggregatedData.route.js";
+
+// Public routes
+app.use("/public", aggregatedDataRouter);
 
 // Beneficiary routes
 app.use("/beneficiary", userRouter);
 app.use("/beneficiary/transaction", transactionHistory);
-app.use("/grievance")
-
+app.use("/grievance", grievanceRouter);
 
 // Managers routes
 app.use("/manager", ownerRouter);
 app.use("/manager/transaction", transactionRouter);
-
-
-
 
 export default app;

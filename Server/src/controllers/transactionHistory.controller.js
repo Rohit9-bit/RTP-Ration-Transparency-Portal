@@ -1,4 +1,4 @@
-import { prisma } from "../DB/db.config";
+import { prisma } from "../DB/db.config.js";
 
 const transactionHistory = async (req, res) => {
   try {
