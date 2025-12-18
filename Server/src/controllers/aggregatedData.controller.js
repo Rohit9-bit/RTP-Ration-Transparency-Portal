@@ -152,6 +152,61 @@ const dashboard = async (req, res) => {
 
     console.log(...districtEfficiency.values());
 
+    // Top Performing distribution centers
+
+    const topDistributionCenters = await prisma.distribution_center.findMany({
+      select: {
+        center_id: true,
+        address: true,
+        transaction_logs: {
+          select: {
+            quantity_entitled: true,
+            quantity_received: true,
+            beneficiaryId: true
+          }
+        },
+      }
+    })
+
+    console.log(...topDistributionCenters)
+
+    const resultsForTopDistributionCenters = topDistributionCenters.map(entry=>{
+      const total = entry.transaction_logs.reduce((acc, curr)=>{
+        acc.quantity_entitled += curr.quantity_entitled ?? 0;
+        acc.quantity_received += curr.quantity_received ?? 0;
+        if(acc.beneficiaryId !== curr.beneficiaryId){
+          acc.numberOfFamiy += 1;
+          acc.beneficiaryId = curr.beneficiaryId;
+          console.log(`prev: ${acc.beneficiaryId}, curr: ${curr.beneficiaryId}`);
+        }
+        return acc;
+      }, {quantity_entitled: 0, quantity_received: 0, beneficiaryId: "", numberOfFamiy: 0})
+      return {
+        center_id: entry.center_id,
+        address: entry.address,
+        efficiency: +((total.quantity_received/ total.quantity_entitled)*100).toFixed(2) || 0,
+        numberOfFamilyServed: total.numberOfFamiy,
+      }
+    })
+
+    function getTop4(arr, n){
+      const top = [];
+      for(const item of arr){
+        top.push(item);
+        top.sort((a, b)=> b.efficiency - a.efficiency);
+        if(top.length > n) top.pop();
+      }
+
+      return top;
+    }
+
+    const top4 = getTop4(resultsForTopDistributionCenters, 4);
+    console.log(top4);
+
+
+    // Quantity distribution trends
+
+
 
     // Top Performing Distribution Centers
 
