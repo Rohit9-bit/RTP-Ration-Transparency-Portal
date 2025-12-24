@@ -95,13 +95,16 @@ const dashboard = async (req, res) => {
     }
 
     const efficiency = [];
+
     for (const eff of monthsWithYear) {
       const entry = DataMap.get(eff);
       if (!entry) {
         efficiency.push(null);
       } else {
         efficiency.push(
-          ((entry.quantity_received / entry.quantity_entitled) * 100).toFixed(2)
+          +((entry.quantity_received / entry.quantity_entitled) * 100).toFixed(
+            2
+          )
         );
       }
     }
@@ -109,7 +112,7 @@ const dashboard = async (req, res) => {
     console.log(months, efficiency);
 
     // District Performance
-  
+
     const districtWithCenters = await prisma.distribution_center.findMany({
       take: 5,
       select: {
@@ -118,35 +121,45 @@ const dashboard = async (req, res) => {
         transaction_logs: {
           select: {
             quantity_entitled: true,
-            quantity_received: true
-          }
-        }
+            quantity_received: true,
+          },
+        },
       },
     });
 
-    const results = districtWithCenters.map(distrct=>{
-      const total = distrct.transaction_logs.reduce((acc, curr)=>{
-        acc.quantity_entitled += curr.quantity_entitled ?? 0;
-        acc.quantity_received += curr.quantity_received ?? 0;
-        return acc;
-      }, {quantity_entitled: 0, quantity_received: 0})
+    const results = districtWithCenters.map((distrct) => {
+      const total = distrct.transaction_logs.reduce(
+        (acc, curr) => {
+          acc.quantity_entitled += curr.quantity_entitled ?? 0;
+          acc.quantity_received += curr.quantity_received ?? 0;
+          return acc;
+        },
+        { quantity_entitled: 0, quantity_received: 0 }
+      );
       return {
         distrct: distrct.district,
         entitled: total.quantity_entitled,
         received: total.quantity_received,
-        efficiency: +((total.quantity_received / total.quantity_entitled) * 100).toFixed(2) || 100,
-      }
-    })
+        efficiency:
+          +((total.quantity_received / total.quantity_entitled) * 100).toFixed(
+            2
+          ) || 100,
+      };
+    });
 
     const districtEfficiency = new Map();
-    for(const entry of results){
+    for (const entry of results) {
       const key = entry.distrct;
-      if(!districtEfficiency.has(key)){
-        districtEfficiency.set(key, {district: key, centers: 1, efficiency: (entry.efficiency || 0)})
-      }else{
+      if (!districtEfficiency.has(key)) {
+        districtEfficiency.set(key, {
+          district: key,
+          centers: 1,
+          efficiency: entry.efficiency || 0,
+        });
+      } else {
         districtEfficiency.get(key).centers += 1;
         const eff = districtEfficiency.get(key).efficiency;
-        districtEfficiency.get(key).efficiency = (eff + entry.efficiency)/2;
+        districtEfficiency.get(key).efficiency = (eff + entry.efficiency) / 2;
       }
     }
 
@@ -162,39 +175,50 @@ const dashboard = async (req, res) => {
           select: {
             quantity_entitled: true,
             quantity_received: true,
-            beneficiaryId: true
-          }
+            beneficiaryId: true,
+          },
         },
+      },
+    });
+
+    const resultsForTopDistributionCenters = topDistributionCenters.map(
+      (entry) => {
+        const total = entry.transaction_logs.reduce(
+          (acc, curr) => {
+            acc.quantity_entitled += curr.quantity_entitled ?? 0;
+            acc.quantity_received += curr.quantity_received ?? 0;
+            if (acc.beneficiaryId !== curr.beneficiaryId) {
+              acc.numberOfFamiy += 1;
+              acc.beneficiaryId = curr.beneficiaryId;
+            }
+            return acc;
+          },
+          {
+            quantity_entitled: 0,
+            quantity_received: 0,
+            beneficiaryId: "",
+            numberOfFamiy: 0,
+          }
+        );
+        return {
+          center_id: entry.center_id,
+          address: entry.address,
+          efficiency:
+            +(
+              (total.quantity_received / total.quantity_entitled) *
+              100
+            ).toFixed(2) || 0,
+          numberOfFamilyServed: total.numberOfFamiy,
+        };
       }
-    })
+    );
 
-    console.log(...topDistributionCenters)
-
-    const resultsForTopDistributionCenters = topDistributionCenters.map(entry=>{
-      const total = entry.transaction_logs.reduce((acc, curr)=>{
-        acc.quantity_entitled += curr.quantity_entitled ?? 0;
-        acc.quantity_received += curr.quantity_received ?? 0;
-        if(acc.beneficiaryId !== curr.beneficiaryId){
-          acc.numberOfFamiy += 1;
-          acc.beneficiaryId = curr.beneficiaryId;
-          console.log(`prev: ${acc.beneficiaryId}, curr: ${curr.beneficiaryId}`);
-        }
-        return acc;
-      }, {quantity_entitled: 0, quantity_received: 0, beneficiaryId: "", numberOfFamiy: 0})
-      return {
-        center_id: entry.center_id,
-        address: entry.address,
-        efficiency: +((total.quantity_received/ total.quantity_entitled)*100).toFixed(2) || 0,
-        numberOfFamilyServed: total.numberOfFamiy,
-      }
-    })
-
-    function getTop4(arr, n){
+    function getTop4(arr, n) {
       const top = [];
-      for(const item of arr){
+      for (const item of arr) {
         top.push(item);
-        top.sort((a, b)=> b.efficiency - a.efficiency);
-        if(top.length > n) top.pop();
+        top.sort((a, b) => b.efficiency - a.efficiency);
+        if (top.length > n) top.pop();
       }
 
       return top;
@@ -203,9 +227,72 @@ const dashboard = async (req, res) => {
     const top4 = getTop4(resultsForTopDistributionCenters, 4);
     console.log(top4);
 
-
     // Quantity distribution trends
 
+    const commodityDistribution = await prisma.transaction_log.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        commodityId: true,
+        quantity_received: true,
+        createdAt: true,
+        commodity: {
+          select: {
+            commodity_name: true,
+          },
+        },
+      },
+    });
+
+    console.log(commodityDistribution);
+
+    const quantityTotal = new Map();
+    for (const entry1 of monthsWithYear) {
+      const key = entry1;
+      for (const entry2 of commodityDistribution) {
+        if (entry1 == monthKey(entry2.createdAt)) {
+          if (!quantityTotal.has(key)) {
+            quantityTotal.set(key, {month: key,
+              commodityDetails: [
+                {
+                  commodityName: entry2.commodity.commodity_name,
+                  quantity_received: entry2.quantity_received,
+                },
+              ],
+            });
+          } else {
+            quantityTotal.get(key).commodityDetails.push({
+              commodityName: entry2.commodity.commodity_name,
+              quantity_received: entry2.quantity_received,
+            });
+          }
+        }
+      }
+    }
+    console.log(...quantityTotal);
+
+   
+
+    // const quantityTotal = new Map();
+    // for (const entry1 of monthsWithYear) {
+    //   for (const entry2 of commodityDistribution) {
+    //     if (entry1 == monthKey(entry2.createdAt)) {
+    //       const key = entry1;
+    //       if (!quantityTotal.has(key)) {
+    //         quantityTotal.set(key, { quantity_received: 0 });
+    //       } else {
+    //         quantityTotal.get(key).quantity_received +=
+    //           entry2._sum.quantity_received;
+    //       }
+    //     }
+    //   }
+    // }
+
+    // console.log(...quantityTotal);
 
     res.status(200).json({ success: true });
   } catch (error) {
