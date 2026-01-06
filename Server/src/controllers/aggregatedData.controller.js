@@ -9,7 +9,7 @@ const dashboard = async (req, res) => {
     const totalRationDistributed = await prisma.transaction_log.aggregate({
       where: {
         createdAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
         },
       },
       _sum: {
@@ -109,7 +109,9 @@ const dashboard = async (req, res) => {
       }
     }
 
-    console.log(months, efficiency);
+    const distribution_efficiency_trend = [
+      { months: months, efficiency: efficiency },
+    ];
 
     // District Performance
 
@@ -163,7 +165,9 @@ const dashboard = async (req, res) => {
       }
     }
 
-    console.log(...districtEfficiency.values());
+    const final_district_efficiency_array = Array.from(
+      districtEfficiency.values()
+    );
 
     // Top Performing distribution centers
 
@@ -225,7 +229,7 @@ const dashboard = async (req, res) => {
     }
 
     const top4 = getTop4(resultsForTopDistributionCenters, 4);
-    console.log(top4);
+
 
     // Quantity distribution trends
 
@@ -248,53 +252,81 @@ const dashboard = async (req, res) => {
       },
     });
 
-    console.log(commodityDistribution);
-
     const quantityTotal = new Map();
-    for (const entry1 of monthsWithYear) {
-      const key = entry1;
-      for (const entry2 of commodityDistribution) {
-        if (entry1 == monthKey(entry2.createdAt)) {
-          if (!quantityTotal.has(key)) {
-            quantityTotal.set(key, {month: key,
-              commodityDetails: [
-                {
-                  commodityName: entry2.commodity.commodity_name,
-                  quantity_received: entry2.quantity_received,
-                },
-              ],
-            });
-          } else {
-            quantityTotal.get(key).commodityDetails.push({
-              commodityName: entry2.commodity.commodity_name,
-              quantity_received: entry2.quantity_received,
-            });
-          }
-        }
+
+    for (const entry of commodityDistribution) {
+      const month = monthKey(entry.createdAt);
+
+      // Skip if this month isn't in your monthsWithYear filter (optional)
+      if (!monthsWithYear.includes(month)) continue;
+
+      // 1. Ensure the Month exists in the Map
+      if (!quantityTotal.has(month)) {
+        quantityTotal.set(month, { month: month, commodityDetails: [] });
+      }
+
+      const monthData = quantityTotal.get(month);
+      const commodityName = entry.commodity.commodity_name;
+
+      // 2. Look for the commodity within this month
+      const existingComm = monthData.commodityDetails.find(
+        (c) => c.commodityName === commodityName
+      );
+
+      if (existingComm) {
+        // 3. Update existing total
+        existingComm.quantity_received += entry.quantity_received;
+      } else {
+        // 4. Or add it for the first time
+        monthData.commodityDetails.push({
+          commodityName: commodityName,
+          quantity_received: entry.quantity_received,
+        });
       }
     }
-    console.log(...quantityTotal);
 
-   
+    const fianl_distribution_trends_array = Array.from(quantityTotal.values());
 
-    // const quantityTotal = new Map();
-    // for (const entry1 of monthsWithYear) {
-    //   for (const entry2 of commodityDistribution) {
-    //     if (entry1 == monthKey(entry2.createdAt)) {
-    //       const key = entry1;
-    //       if (!quantityTotal.has(key)) {
-    //         quantityTotal.set(key, { quantity_received: 0 });
-    //       } else {
-    //         quantityTotal.get(key).quantity_received +=
-    //           entry2._sum.quantity_received;
-    //       }
-    //     }
-    //   }
-    // }
+    // Total individiual commodity distribution for this month
+    const commodity_names = await prisma.commodity.groupBy({
+      by: ['commodity_id', 'commodity_name'],
+    });
 
-    // console.log(...quantityTotal);
+    const individual_commodity_data = [];
 
-    res.status(200).json({ success: true });
+    for(const commodity_name of commodity_names){
+      const total_individual_commodity_distributed = await prisma.transaction_log.aggregate({
+        where: {
+          commodityId: commodity_name.commodity_id,
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+          }
+        },
+        _sum: {
+          quantity_received: true,
+        }
+        
+      })
+      individual_commodity_data.push({commodity_name: commodity_name.commodity_name, total_distribution: total_individual_commodity_distributed._sum.quantity_received})
+    }
+    
+
+    res.status(200).json({
+      success: true,
+      data: [
+        {
+          total_ration_distributed: totalRationDistributed._sum.quantity_received,
+          total_active_distribution_centers: totalActiveDistributionCenters,
+          total_grievances_filled: totalGrievancesFiled,
+          total_beneficiary_registered: totalBeneficiariesRegistered,
+          distribution_efficiency_trend: distribution_efficiency_trend,
+          district_efficiency: final_district_efficiency_array,
+          top_performing_distribution_centers: top4,
+          distribution_trends_array: fianl_distribution_trends_array,
+          individual_commodity_data: individual_commodity_data,
+        },
+      ],
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error!", error });
