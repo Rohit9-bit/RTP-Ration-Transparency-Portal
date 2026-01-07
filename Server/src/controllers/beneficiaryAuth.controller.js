@@ -182,6 +182,9 @@ const loginBeneficiary = async (req, res) => {
       where: {
         ration_card_no: rationCardNo,
       },
+      select: {
+        password: true,
+      }
     });
 
     if (!beneficiary) {
@@ -190,7 +193,7 @@ const loginBeneficiary = async (req, res) => {
         .json({ message: "Invalid Ration Card Number or Password!" });
     }
 
-    const check_password = await bcrypt.compare(password, user.password);
+    const check_password = await bcrypt.compare(password, beneficiary.password);
     if (!check_password) {
       return res
         .status(409)
@@ -210,7 +213,7 @@ const loginBeneficiary = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Beneficiary logged in successfully!", user });
+      .json({ message: "Beneficiary logged in successfully!" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error!" });
