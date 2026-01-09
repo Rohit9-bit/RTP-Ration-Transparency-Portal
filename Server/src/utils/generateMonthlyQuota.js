@@ -58,7 +58,6 @@ const generateMonthlyQuota = async () => {
             commodityId: allCommodities[j].commodity_id,
             quantity_entitled: 2,
             quantity_remaining: 2,
-            month_year: new Date().toISOString().slice(0,7),
           });
         }
       }

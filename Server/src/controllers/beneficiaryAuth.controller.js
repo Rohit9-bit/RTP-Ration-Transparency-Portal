@@ -184,8 +184,11 @@ const loginBeneficiary = async (req, res) => {
       },
       select: {
         password: true,
+        beneficiary_id: true,
       }
     });
+
+    console.log(beneficiary);
 
     if (!beneficiary) {
       return res

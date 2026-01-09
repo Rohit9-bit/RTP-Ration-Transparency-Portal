@@ -38,9 +38,37 @@ const registerShopOwner = async (req, res) => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       return res
-        .status(401)
+        .status(400)
         .json({ message: "Please Enter valid email Address!" });
     }
+
+    const checkEmailInBeneficiaryDb = await prisma.beneficiary.findFirst({
+      where: {
+        email: email,
+      },
+      select: {
+        email: true,
+      }
+    });
+
+    if(checkEmailInBeneficiaryDb){
+      return res.status(400).json({message: "Invalid email address!"})
+    };
+
+    const checkPhoneInBeneficiaryDb = await prisma.beneficiary.findFirst({
+      where: {
+        phone_no: phone_no,
+      },
+      select: {
+        phone_no: true,
+      },
+    });
+
+    if(checkPhoneInBeneficiaryDb){
+      return res.status(400).json({
+        message: "Invalid phone number!"
+      })
+    };
 
     const shopOwner = await prisma.shop_owner.findFirst({
       where: {
@@ -53,13 +81,13 @@ const registerShopOwner = async (req, res) => {
 
     if (shopOwner) {
       return res
-        .status(401)
+        .status(400)
         .json({ message: "Owner with this email or ownerId already exists!" });
     }
 
     const mobile_number_regex = /^\d{10}$/;
     if(mobile_number_regex.test(phone_no)){
-      return res.status(401).json({ message: "Invalid phone number!" });
+      return res.status(400).json({ message: "Invalid phone number!" });
     }
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix

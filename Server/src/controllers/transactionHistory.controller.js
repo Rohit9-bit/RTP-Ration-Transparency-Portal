@@ -34,10 +34,11 @@ const transactionHistory = async (req, res) => {
         },
       },
       skip: (page - 1) * pageSize,
-      take: pageSize,
+      take: pageSize * 4,
     });
 
     for (const entry of recentTransactions) {
+      console.log(entry);
       const key = entry.createdAt.toISOString().slice(0, 7);
       if (!thisMonthsTransaction.has(key)) {
         thisMonthsTransaction.set(key, {
@@ -53,17 +54,21 @@ const transactionHistory = async (req, res) => {
               quantity_received: entry.quantity_received,
             },
           ],
-          status: {
-            status: "completed",
+          status: [{
+            name: entry.commodity.commodity_name,
             anomaly_type:
               entry.anomaly_type === null ? "none" : entry.anomaly_type,
-          },
+          }],
         });
       } else {
         thisMonthsTransaction.get(key).items.push({
           name: entry.commodity.commodity_name,
           quantity_entitled: entry.quantity_entitled,
           quantity_received: entry.quantity_received,
+        });
+        thisMonthsTransaction.get(key).status.push({
+          name: entry.commodity.commodity_name,
+          anomaly_type: entry.anomaly_type === null ? "none" : entry.anomaly_type,
         });
       }
     }
@@ -72,20 +77,17 @@ const transactionHistory = async (req, res) => {
       thisMonthsTransaction.values()
     );
 
-    // const totalTransaction = await prisma.transaction_log.groupBy({
-    //   by: ["createdAt"],
-    //   where: {
-    //     beneficiaryId: beneficiary.beneficiary_id,
-    //   },
-    //   _count: {
-    //     transaction_id: true,
-    //   }
-    // });
+    const totalTransaction = await prisma.transaction_log.groupBy({
+      by: ["beneficiaryId"],
+      where: {
+        beneficiaryId: beneficiary.beneficiary_id,
+      },
+    });
 
-    const totalTransaction = 10;
+    const totalTransactionPages = totalTransaction.length;
 
 
-    const totalPages = Math.ceil(totalTransaction / pageSize);
+    const totalPages = Math.ceil(totalTransactionPages / pageSize);
 
     res
       .status(200)
@@ -95,10 +97,10 @@ const transactionHistory = async (req, res) => {
         metaDataForPagination: {
           page,
           pageSize,
-          total: totalTransaction,
+          total: totalTransactionPages,
           totalPages,
           start: (page - 1) * pageSize + 1,
-          end: Math.min(page * pageSize, totalTransaction),
+          end: Math.min(page * pageSize, totalTransactionPages),
         },
       });
   } catch (error) {
