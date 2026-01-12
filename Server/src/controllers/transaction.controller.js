@@ -26,14 +26,20 @@ const transactionController = async (req, res) => {
         .json({ message: "Please enter the commodities amount!" });
     }
 
-    const transactionData = await prisma.transaction_log.findMany({
+    const transactionData = await prisma.transaction_log.findFirst({
       where: {
         beneficiaryId: beneficiary.beneficiary_id,
+        createdAt: {
+          gt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        },
+      },
+      select: {
+        createdAt: true,
       },
     });
 
-    if (transactionData[0]) {
-      const createdAt = new Date(transactionData[0].createdAt);
+    if (transactionData) {
+      const createdAt = new Date(transactionData.createdAt);
       const now = new Date();
       if (
         createdAt.getMonth() === now.getMonth() &&
@@ -45,26 +51,34 @@ const transactionController = async (req, res) => {
       }
     }
 
-    const beneficiary_quota = await prisma.quota.findMany({
-      where: { beneficiaryId: beneficiary.beneficiary_id },
-      select: {
-        quantity_entitled: true,
-        commodityId: true,
-      },
-    });
+    // const beneficiary_quota = await prisma.quota.findMany({
+    //   where: {
+    //     beneficiaryId: beneficiary.beneficiary_id,
+    //     createdAt: {
+    //       gt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    //     },
+    //   },
+    //   select: {
+    //     quantity_entitled: true,
+    //     commodityId: true,
+    //   },
+    // });
 
-    for (const quota of beneficiary_quota) {
-      for (const commoditiesReceive of commoditiesReceived) {
-        if (
-          commoditiesReceive.commodityId === quota.commodityId &&
-          commoditiesReceive.quantity_receive > quota.quantity_entitled
-        ) {
-          return res
-            .status(400)
-            .json({ message: "Exceeds Beneficiary Entitlement!" });
-        }
-      }
-    }
+    // console.log(beneficiary_quota);
+
+    // for (const quota of beneficiary_quota) {
+    //   for (const commoditiesReceive of commoditiesReceived) {
+    //     console.log(commoditiesReceive.quantity_receive, quota.quantity_entitled)
+    //     if (
+    //       commoditiesReceive.commodityId === quota.commodityId &&
+    //       !(commoditiesReceive.quantity_receive > quota.quantity_entitled)
+    //     ) {
+    //       return res
+    //         .status(400)
+    //         .json({ message: "Exceeds Beneficiary Entitlement!" });
+    //     }
+    //   }
+    // }
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
 
@@ -75,6 +89,9 @@ const transactionController = async (req, res) => {
         where: {
           beneficiaryId: beneficiary.beneficiary_id,
           commodityId: commoditiesReceive.commodityId,
+          createdAt: {
+            gt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          },
         },
       });
 
@@ -99,13 +116,15 @@ const transactionController = async (req, res) => {
       }
 
       if (commoditiesReceive.quantity_receive > shop_stock.stock_in_quantity) {
-        return res.status(400).json({ message: "Insufficient Stock!" });
+        return res.status(400).json({
+          message: `Insufficient Stock for commodity ${commoditiesReceive.commodityId}`,
+        });
       }
 
       if (commoditiesReceive.quantity_receive > quantity_remaining) {
-        return res
-          .status(400)
-          .json({ message: "Exceeds Beneficiary Entitlement!" });
+        return res.status(400).json({
+          message: `Exceeds Beneficiary Entitlement for commodity ${commoditiesReceive.commodityId}`,
+        });
       }
 
       const result = await prisma.$transaction(async (tx) => {
@@ -179,7 +198,6 @@ const transactionController = async (req, res) => {
       message: "Transactions recorded successfully.",
       transactionIds,
     });
-    
   } catch (error) {
     console.log(error);
     res.status(500).json({
