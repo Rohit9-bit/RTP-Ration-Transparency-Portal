@@ -18,22 +18,30 @@ const server = async () => {
 await server();
 dbConnect();
 
-import { generateMonthlyQuota } from "./utils/generateMonthlyQuota.js";
 import cron from "node-cron";
-
+import { generateMonthlyQuota } from "./utils/generateMonthlyQuota.js";
+import { generateMonthlyShopStockLedger } from "./utils/generateMonthlyShopStockLedger.js";
 
 // Schedule the job to run at 00:05 (5 minutes past midnight) on the 1st day of every month
-cron.schedule('5 0 1 * *', async () => {
-  console.log('Running monthly quota generation job...');
-  try {
-    await generateMonthlyQuota();
-    console.log('Monthly quota generation job completed successfully.');
-  } catch (error) {
-    console.error('Error in monthly quota generation job:', error);
+cron.schedule(
+  "5 0 1 * *",
+  async () => {
+    console.log("Running monthly quota and stock-ledger generation job...");
+    try {
+      await generateMonthlyQuota();
+      await generateMonthlyShopStockLedger();
+      console.log(
+        "Monthly quota ane stock-ledger generation job completed successfully."
+      );
+    } catch (error) {
+      console.error(
+        "Error in monthly quota and stock-ledger generation job:",
+        error
+      );
+    }
+  },
+  {
+    scheduled: true,
+    timezone: "Asia/Kolkata", // Or your relevant timezone
   }
-}, {
-  scheduled: true,
-  timezone: "Asia/Kolkata" // Or your relevant timezone
-});
-
-
+);

@@ -90,7 +90,7 @@ const transactionController = async (req, res) => {
           beneficiaryId: beneficiary.beneficiary_id,
           commodityId: commoditiesReceive.commodityId,
           createdAt: {
-            gt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+            equals: new Date("2026-01-09 14:23:00.068"),
           },
         },
       });

@@ -21,12 +21,12 @@ model beneficiary {
   is_active          Boolean             @default(true)
   security_PIN       Int
   createdAt          DateTime            @default(now())
-  updatedAt          DateTime?
-  distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
+  updatedAt          DateTime?           @updatedAt
   centerId           String
+  distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
+  grievances         grievance[]
   quotas             quota[]
   transaction_logs   transaction_log[]
-  grievances         grievance[]
 }
 
 model shop_owner {
@@ -40,7 +40,7 @@ model shop_owner {
   owner_id            String
   password            String
   createdAt           DateTime             @default(now())
-  updatedAt           DateTime?
+  updatedAt           DateTime?            @updatedAt
   distribution_center distribution_center?
 }
 
@@ -51,12 +51,13 @@ model distribution_center {
   state              String
   district           String
   createdAt          DateTime            @default(now())
-  shopOwner          shop_owner          @relation(fields: [managerId], references: [manager_id])
   managerId          String              @unique
+  updatedAt          DateTime?           @default(now()) @updatedAt @db.Timestamp(6)
   beneficiaries      beneficiary[]
-  transaction_logs   transaction_log[]
-  shop_stock_ledgers shop_stock_ledger[]
+  shopOwner          shop_owner          @relation(fields: [managerId], references: [manager_id])
   grievances         grievance[]
+  shop_stock_ledgers shop_stock_ledger[]
+  transaction_logs   transaction_log[]
 }
 
 model commodity {
@@ -64,10 +65,11 @@ model commodity {
   commodity_name    String
   unit              String
   createdAt         DateTime            @default(now())
-  transaction_log   transaction_log[]
-  shop_stock_ledger shop_stock_ledger[]
-  quotas            quota[]
+  updatedAt         DateTime?           @default(now()) @updatedAt @db.Timestamp(6)
   grievance         grievance[]
+  quotas            quota[]
+  shop_stock_ledger shop_stock_ledger[]
+  transaction_log   transaction_log[]
 }
 
 model quota {
@@ -75,12 +77,12 @@ model quota {
   month_year         DateTime    @default(now())
   quantity_entitled  Float
   quantity_remaining Float
-  beneficiary        beneficiary @relation(fields: [beneficiaryId], references: [beneficiary_id])
   beneficiaryId      String
-  commodity          commodity   @relation(fields: [commodityId], references: [commodity_id])
   commodityId        String
   createdAt          DateTime    @default(now())
-  updatedAt          DateTime?
+  updatedAt          DateTime?   @updatedAt
+  beneficiary        beneficiary @relation(fields: [beneficiaryId], references: [beneficiary_id])
+  commodity          commodity   @relation(fields: [commodityId], references: [commodity_id])
 
   @@unique([beneficiaryId, commodityId, month_year])
 }
@@ -91,26 +93,26 @@ model transaction_log {
   quantity_received          Float
   is_verified_by_beneficiery Boolean
   anomaly_type               String?
-  beneficiary                beneficiary         @relation(fields: [beneficiaryId], references: [beneficiary_id])
   beneficiaryId              String
-  distributionCenter         distribution_center @relation(fields: [centerId], references: [center_id])
   centerId                   String
-  commodity                  commodity           @relation(fields: [commodityId], references: [commodity_id])
   commodityId                String
   createdAt                  DateTime            @default(now())
-  updatedAt                  DateTime?
+  updatedAt                  DateTime?           @updatedAt
+  beneficiary                beneficiary         @relation(fields: [beneficiaryId], references: [beneficiary_id])
+  distributionCenter         distribution_center @relation(fields: [centerId], references: [center_id])
+  commodity                  commodity           @relation(fields: [commodityId], references: [commodity_id])
 }
 
 model shop_stock_ledger {
   ledger_id          String              @id @unique
   stock_in_quantity  Float
   stock_out_quantity Float
-  distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
   centerId           String
   createdAt          DateTime            @default(now())
-  updatedAt          DateTime?
-  commodity          commodity           @relation(fields: [commodityId], references: [commodity_id])
+  updatedAt          DateTime?           @updatedAt
   commodityId        String
+  distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
+  commodity          commodity           @relation(fields: [commodityId], references: [commodity_id])
 }
 
 model grievance {
@@ -119,14 +121,14 @@ model grievance {
   description        String?
   status             String              @default("Pending")
   priority_level     String              @default("Medium")
-  distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
   centerId           String
-  beneficiary        beneficiary         @relation(fields: [beneficiaryId], references: [beneficiary_id])
   beneficiaryId      String
-  commodity          commodity           @relation(fields: [commodityId], references: [commodity_id])
   commodityId        String
   expected_quantity  Float
   actual_quantity    Float
   createdAt          DateTime            @default(now())
-  updatedAt          DateTime?
+  updatedAt          DateTime?           @updatedAt
+  beneficiary        beneficiary         @relation(fields: [beneficiaryId], references: [beneficiary_id])
+  distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
+  commodity          commodity           @relation(fields: [commodityId], references: [commodity_id])
 }

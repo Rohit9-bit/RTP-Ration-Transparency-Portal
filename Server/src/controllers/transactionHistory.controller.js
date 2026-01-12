@@ -33,12 +33,11 @@ const transactionHistory = async (req, res) => {
           },
         },
       },
-      skip: (page - 1) * pageSize,
+      skip: (page - 1) * (pageSize * 4),
       take: pageSize * 4,
     });
 
     for (const entry of recentTransactions) {
-      console.log(entry);
       const key = entry.createdAt.toISOString().slice(0, 7);
       if (!thisMonthsTransaction.has(key)) {
         thisMonthsTransaction.set(key, {

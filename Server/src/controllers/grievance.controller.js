@@ -42,18 +42,32 @@ const newGrievance = async (req, res) => {
   }
 };
 
-const recentGrievances = async (req, res) => {
+const allGrievances = async (req, res) => {
   try {
     const beneficiary = req.beneficiary;
+    const {page} = req.query || 1;
+    const pageSize = 5;
 
     const grievances = await prisma.grievance.findMany({
       where: {
         beneficiaryId: beneficiary.beneficiary_id,
       },
-      orderBy: {
-        created_at: "desc",
+      select: {
+        grievance_id: true,
+        issue_type: true,
+        description: true,
+        centerId: true,
+        expected_quantity: true,
+        actual_quantity: true,
+        status: true,
+        commodity: {
+          select: {
+            commodity_name: true,
+          }
+        }
       },
-      take: 5,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
     if (grievances.length === 0) {
@@ -62,7 +76,7 @@ const recentGrievances = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Recent grievances fetched successfully!", grievances });
+      .json({ message: "Recent grievances fetched successfully!", data: grievances });
 
 
   } catch (error) {
@@ -71,4 +85,4 @@ const recentGrievances = async (req, res) => {
   }
 };
 
-export { newGrievance, recentGrievances };
+export { newGrievance, allGrievances };

@@ -67,7 +67,10 @@ const generateMonthlyQuota = async () => {
       data: quotaRecords,
     });
 
-    console.log("Quotas", newQouta);
+    if(!newQouta){
+      throw new Error("Something went wrong!");
+    }
+
   } catch (error) {
     console.log(error);
   }

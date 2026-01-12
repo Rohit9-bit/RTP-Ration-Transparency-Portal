@@ -11,7 +11,7 @@ const beneficiaryDashboard = async (req, res) => {
         where: {
             beneficiaryId: beneficiary.beneficiary_id,
             month_year: {
-                gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+                gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
             }
         },
         select: {
@@ -26,7 +26,6 @@ const beneficiaryDashboard = async (req, res) => {
         }
     });
 
-    console.log(thisMonthsQuota);
 
     // Account information
 
@@ -48,7 +47,6 @@ const beneficiaryDashboard = async (req, res) => {
         }
     })
 
-    console.log(beneficiaryAccountsDetails)
 
     // Recent Transaction(this months)
 
@@ -112,10 +110,14 @@ const beneficiaryDashboard = async (req, res) => {
 
     
 
-    console.log(...thisMonthsTransaction.values());
+    const thisMonthsTransactionArray = Array.from(thisMonthsTransaction.values());
 
 
-    res.status(200).json({message: "Everythings fine!"});
+    res.status(200).json({message: "Data fetched successfully!",data: [{
+        thisMonthsQuota: thisMonthsQuota,
+        beneficiaryAccountsDetails: beneficiaryAccountsDetails,
+        thisMonthsTransactionArray: thisMonthsTransactionArray,
+    }]});
   } catch (error) {
     console.log(error);
     res.status(400).json({ message: "Internal server error!" });
