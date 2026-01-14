@@ -76,23 +76,30 @@ const transactionHistory = async (req, res) => {
       thisMonthsTransaction.values()
     );
 
-    const totalTransaction = await prisma.transaction_log.groupBy({
-      by: ["beneficiaryId"],
+    const totalTransaction = await prisma.transaction_log.count({
       where: {
         beneficiaryId: beneficiary.beneficiary_id,
-      },
+      }
     });
 
-    const totalTransactionPages = totalTransaction.length;
+    const totalTransactionPages = totalTransaction/4;
 
 
     const totalPages = Math.ceil(totalTransactionPages / pageSize);
+
+    // Total Successfull Transaction
+    
+    
 
     res
       .status(200)
       .json({
         success: true,
-        data: thisMonthsTransactionArray,
+        data1: thisMonthsTransactionArray,
+        data2: {
+          totalTransactions: totalTransactionPages,
+          totalSuccessfulTransaction: ""
+        },
         metaDataForPagination: {
           page,
           pageSize,

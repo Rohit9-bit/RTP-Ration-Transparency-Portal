@@ -11,7 +11,7 @@ const beneficiaryDashboard = async (req, res) => {
         where: {
             beneficiaryId: beneficiary.beneficiary_id,
             month_year: {
-                gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+                equals: new Date().toISOString().slice(0,7),
             }
         },
         select: {
