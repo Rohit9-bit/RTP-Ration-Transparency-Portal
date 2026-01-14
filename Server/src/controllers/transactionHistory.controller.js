@@ -88,7 +88,29 @@ const transactionHistory = async (req, res) => {
     const totalPages = Math.ceil(totalTransactionPages / pageSize);
 
     // Total Successfull Transaction
-    
+    const succesfullTransactions = await prisma.transaction_log.groupBy({
+      by: ["commodityId", "anomaly_type"],
+      where: {
+        beneficiaryId: beneficiary.beneficiary_id,
+      },
+      _count: {
+        _all: true,
+      }
+    });
+
+    let anomaly_in_transaction = 0;
+    for(const transaction of succesfullTransactions){
+      if(transaction.anomaly_type === "Quantity Variance!"){
+        anomaly_in_transaction++;
+      }
+    }
+
+    // Issues Reported!
+    const issuesReported = await prisma.grievance.count({
+      where: {
+        beneficiaryId: beneficiary.beneficiary_id,
+      }
+    });
     
 
     res
@@ -98,7 +120,12 @@ const transactionHistory = async (req, res) => {
         data1: thisMonthsTransactionArray,
         data2: {
           totalTransactions: totalTransactionPages,
-          totalSuccessfulTransaction: ""
+          totalSuccessfulTransaction: {
+            success: totalTransactionPages - anomaly_in_transaction,
+            rate: (((totalTransactionPages - anomaly_in_transaction) / totalTransactionPages) * 100).toFixed(2),
+          },
+          partialTransactions: anomaly_in_transaction,
+          issuesReported: issuesReported,
         },
         metaDataForPagination: {
           page,

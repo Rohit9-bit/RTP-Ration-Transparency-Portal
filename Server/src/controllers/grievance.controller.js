@@ -4,6 +4,7 @@ import { prisma } from "../DB/db.config.js";
 const newGrievance = async (req, res) => {
   try {
     const { issue_type, description, quantity_discrepancy_details } = req?.body;
+    const {priority} = req?.query;
     const beneficiary = req.beneficiary;
 
     if (!issue_type) {
@@ -30,6 +31,7 @@ const newGrievance = async (req, res) => {
         commodityId: quantity_discrepancy_details.commodityId,
         expected_quantity: quantity_discrepancy_details.expected_quantity,
         actual_quantity: quantity_discrepancy_details.actual_quantity,
+        priority_level: priority,
       },
     });
 

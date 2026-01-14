@@ -1,5 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 const app = express();
 
@@ -7,6 +8,14 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(cookieParser());
+
+// CORS policy
+app.use(cors({
+    origin: "http://localhost:3000/",
+    methods: ["GET", "POST"],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+}));
 
 import userRouter from "./routes/beneficiaryAuth.route.js";
 import ownerRouter from "./routes/ownerAuth.route.js";
