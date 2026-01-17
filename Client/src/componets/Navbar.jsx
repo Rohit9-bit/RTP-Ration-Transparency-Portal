@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 
 //icons
 import { GiWheat } from "react-icons/gi";
@@ -7,6 +7,11 @@ import { FaBell } from "react-icons/fa";
 import { FaCircleQuestion } from "react-icons/fa6";
 
 const Navbar = () => {
+  const [selectedTab, setSelectedTab] = useState(false);
+  const handleTab = ()=>{
+    setSelectedTab(!selectedTab);
+    console.log(selectedTab);
+  }
   return (
     <>
       <div className="px-30 py-2 shadow flex items-center justify-between">
