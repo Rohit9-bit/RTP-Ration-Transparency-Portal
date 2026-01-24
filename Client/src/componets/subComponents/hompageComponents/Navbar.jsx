@@ -6,7 +6,7 @@ import { CiGlobe } from "react-icons/ci";
 import { FaBell } from "react-icons/fa";
 import { FaCircleQuestion } from "react-icons/fa6";
 
-const Navbar = () => {
+const Navbar = ({login, publicPage}) => {
   const [selectedTab, setSelectedTab] = useState(false);
   const handleTab = ()=>{
     setSelectedTab(!selectedTab);
@@ -35,12 +35,13 @@ const Navbar = () => {
           >
             <option value="en">English</option>
           </select>
-          <button className="ml-6 bg-blue-800 rounded-md px-4 py-2 text-white font-medium cursor-pointer hover:bg-blue-900 transition">
-            Beneficiary Login
+          {publicPage ? <a className="mx-5 hover:text-blue-800 transition-colors" href="/">Public Dashboard</a> : null }
+          <button className="bg-blue-800 rounded-md px-4 py-2 text-white font-medium cursor-pointer hover:bg-blue-900 transition">
+            {login}
           </button>
         </div>
       </div>
-      <div className="px-30 py-4 flex items-center justify-between ">
+      {/* <div className="px-30 py-4 flex items-center justify-between ">
         <div className="flex items-center gap-10 text-lg font-medium text-gray-600">
           <a href="#" className="hover:text-blue-800">
             Public Dashboard
@@ -62,7 +63,7 @@ const Navbar = () => {
           <FaCircleQuestion size={20} color="#4a5565" className="mr-6" />
           <FaBell size={20} color="#4a5565" />
         </div>
-      </div>
+      </div> */}
     </>
   );
 };
