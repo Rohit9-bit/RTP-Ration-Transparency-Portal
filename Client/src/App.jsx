@@ -17,8 +17,8 @@ const App = () => {
       <Route path='/' element={<PublicDashboard />} />
 
       {/* Beneficiary Auth Routes */}
-      <Route path='/beneficary/register' element={<RegisterBeneficary />} />
-      <Route path='/beneficary/login' element={<LoginBeneficiary />} />
+      <Route path='/beneficiary/register' element={<RegisterBeneficary />} />
+      <Route path='/beneficiary/login' element={<LoginBeneficiary />} />
 
 
       {/* Shop Owner Auth Routes */}
