@@ -24,6 +24,7 @@ import transactionHistory from "./routes/transactionHistory.route.js";
 import grievanceRouter from "./routes/grievance.route.js";
 import aggregatedDataRouter from "./routes/aggregatedData.route.js";
 import beneficiaryDashboardRouter from "./routes/benficiaryDashboard.route.js";
+import getCenterDetails from "./routes/getCenterDetails.route.js";
 
 // Public routes
 app.use("/public", aggregatedDataRouter);
@@ -37,5 +38,12 @@ app.use("/beneficiary/dashboard", beneficiaryDashboardRouter);
 // Managers routes
 app.use("/manager", ownerRouter);
 app.use("/manager/transaction", transactionRouter);
+
+// distributions center endpoint
+app.use("/centers", getCenterDetails);
+
+// token checker route
+import tokenCheckerRouter from "./middlewares/tokenChecker.middleware.js";
+app.use("/token", tokenCheckerRouter);
 
 export default app;

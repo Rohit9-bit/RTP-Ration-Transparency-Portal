@@ -35,7 +35,7 @@ const registerBeneficiary = async (req, res) => {
 
     if (
       requiredFields.some(
-        (field) => field === null || field === undefined || field === ""
+        (field) => field === null || field === undefined || field === "",
       )
     ) {
       return res.status(400).json({ message: "All fields are Required!" });
@@ -57,19 +57,17 @@ const registerBeneficiary = async (req, res) => {
     const shop_Owner_with_this_email = await prisma.shop_owner.findFirst({
       where: {
         email: email,
-      }
-    })
+      },
+    });
 
     if (beneficiary_with_email || shop_Owner_with_this_email) {
-      return res
-        .status(409)
-        .json({ message: "Invalid email Address!" });
+      return res.status(409).json({ message: "Please use different email address!" });
     }
 
-    const mobile_number_regex = /^\d{10}$/;
-    if(mobile_number_regex.test(phone_no)){
-      return res.status(401).json({ message: "Invalid phone number!" });
-    }
+    // const mobile_number_regex = /^\d{10}$/;
+    // if (mobile_number_regex.test(phone_no)) {
+    //   return res.status(400).json({ message: "Invalid phone number!" });
+    // }
 
     const beneficiary_with_phone = await prisma.beneficiary.findFirst({
       where: {
@@ -80,7 +78,7 @@ const registerBeneficiary = async (req, res) => {
     const shop_owner_with_this_number = await prisma.shop_owner.findFirst({
       where: {
         phone_no: phone_no,
-      }
+      },
     });
 
     if (beneficiary_with_phone || shop_owner_with_this_number) {
@@ -88,7 +86,9 @@ const registerBeneficiary = async (req, res) => {
     }
 
     if (family_size > 20 || family_size < 1) {
-      return res.status(400).json({ message: "Please enter correct family size!" });
+      return res
+        .status(400)
+        .json({ message: "Please enter correct family size!" });
     }
 
     if (password.length < 8) {
@@ -103,7 +103,7 @@ const registerBeneficiary = async (req, res) => {
         .json({ message: "security pin must be of 4 digits!" });
     }
 
-    if (rationCardNo.length > 15 || rationCardNo.length < 15) {
+    if (rationCardNo.length > 12 || rationCardNo.length < 12) {
       return res.status(400).json({ message: "Invalid ration card Number!" });
     }
 
@@ -121,10 +121,9 @@ const registerBeneficiary = async (req, res) => {
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
     const id = "BENE" + generateNumericId();
-    const full_Ration_card_number = "RCN"+ rationCardNo;
+    const full_Ration_card_number = "RCN" + rationCardNo;
     const salt = await bcrypt.genSalt(13);
     const hashed_password = await bcrypt.hash(password, salt);
-    
 
     const newBeneficiary = await prisma.beneficiary.create({
       data: {
@@ -133,20 +132,20 @@ const registerBeneficiary = async (req, res) => {
         email,
         phone_no,
         password: hashed_password,
-        security_PIN: security_PIN,
-        family_size,
+        security_PIN: parseInt(security_PIN),
+        family_size: parseInt(family_size),
         state,
         district,
         address,
         ration_card_no: full_Ration_card_number,
-        centerId: centerId,
+        centerId,
       },
     });
 
     const token = jwt.sign(
       { beneficiary_id: newBeneficiary.beneficiary_id },
       process.env.JWT_SECRET_KEY,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     res.cookie("jwt", token, {
@@ -185,10 +184,8 @@ const loginBeneficiary = async (req, res) => {
       select: {
         password: true,
         beneficiary_id: true,
-      }
+      },
     });
-
-    console.log(beneficiary);
 
     if (!beneficiary) {
       return res
@@ -206,7 +203,7 @@ const loginBeneficiary = async (req, res) => {
     const token = jwt.sign(
       { beneficiary_id: beneficiary.beneficiary_id },
       process.env.JWT_SECRET_KEY,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
 
     res.cookie("jwt", token, {
@@ -214,9 +211,7 @@ const loginBeneficiary = async (req, res) => {
       httpOnly: true,
     });
 
-    res
-      .status(200)
-      .json({ message: "Beneficiary logged in successfully!" });
+    res.status(200).json({ message: "Beneficiary logged in successfully!" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error!" });
