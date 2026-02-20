@@ -18,7 +18,7 @@ axiosInstance.interceptors.response.use(
             switch (error.response.status) {
                 case 401:
                     // Handle unauthorized access
-                    window.location.href = '/login';
+                    alert('You are not authorized. Please log in.');
                     break;
                 case 403:
                     // Handle forbidden access

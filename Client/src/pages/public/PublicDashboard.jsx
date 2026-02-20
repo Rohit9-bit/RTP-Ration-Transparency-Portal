@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import customReactQuery from "../hooks/customReactQuery.js";
+import customReactQuery from "../../hooks/customReactQuery.js";
 
 const PublicDashboard = () => {
   const { dashboardData, loading } = customReactQuery("/public/dashboard");
