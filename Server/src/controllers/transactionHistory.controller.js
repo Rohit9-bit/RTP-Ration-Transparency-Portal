@@ -30,6 +30,7 @@ const transactionHistory = async (req, res) => {
         commodity: {
           select: {
             commodity_name: true,
+            unit: true,
           },
         },
       },
@@ -51,39 +52,35 @@ const transactionHistory = async (req, res) => {
               name: entry.commodity.commodity_name,
               quantity_entitled: entry.quantity_entitled,
               quantity_received: entry.quantity_received,
+              anomaly_type:
+                entry.anomaly_type === null ? "none" : entry.anomaly_type,
+              unit: entry.commodity.unit,
             },
           ],
-          status: [{
-            name: entry.commodity.commodity_name,
-            anomaly_type:
-              entry.anomaly_type === null ? "none" : entry.anomaly_type,
-          }],
         });
       } else {
         thisMonthsTransaction.get(key).items.push({
           name: entry.commodity.commodity_name,
           quantity_entitled: entry.quantity_entitled,
           quantity_received: entry.quantity_received,
-        });
-        thisMonthsTransaction.get(key).status.push({
-          name: entry.commodity.commodity_name,
-          anomaly_type: entry.anomaly_type === null ? "none" : entry.anomaly_type,
+          anomaly_type:
+            entry.anomaly_type === null ? "none" : entry.anomaly_type,
+          unit: entry.commodity.unit,
         });
       }
     }
 
     const thisMonthsTransactionArray = Array.from(
-      thisMonthsTransaction.values()
+      thisMonthsTransaction.values(),
     );
 
     const totalTransaction = await prisma.transaction_log.count({
       where: {
         beneficiaryId: beneficiary.beneficiary_id,
-      }
+      },
     });
 
-    const totalTransactionPages = totalTransaction/4;
-
+    const totalTransactionPages = totalTransaction / 4;
 
     const totalPages = Math.ceil(totalTransactionPages / pageSize);
 
@@ -95,12 +92,12 @@ const transactionHistory = async (req, res) => {
       },
       _count: {
         _all: true,
-      }
+      },
     });
 
     let anomaly_in_transaction = 0;
-    for(const transaction of succesfullTransactions){
-      if(transaction.anomaly_type === "Quantity Variance!"){
+    for (const transaction of succesfullTransactions) {
+      if (transaction.anomaly_type === "Quantity Variance!") {
         anomaly_in_transaction++;
       }
     }
@@ -109,33 +106,34 @@ const transactionHistory = async (req, res) => {
     const issuesReported = await prisma.grievance.count({
       where: {
         beneficiaryId: beneficiary.beneficiary_id,
-      }
+      },
     });
-    
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        data1: thisMonthsTransactionArray,
-        data2: {
-          totalTransactions: totalTransactionPages,
-          totalSuccessfulTransaction: {
-            success: totalTransactionPages - anomaly_in_transaction,
-            rate: (((totalTransactionPages - anomaly_in_transaction) / totalTransactionPages) * 100).toFixed(2),
-          },
-          partialTransactions: anomaly_in_transaction,
-          issuesReported: issuesReported,
+    res.status(200).json({
+      success: true,
+      data1: thisMonthsTransactionArray,
+      data2: {
+        totalTransactions: totalTransactionPages,
+        totalSuccessfulTransaction: {
+          success: totalTransactionPages - anomaly_in_transaction,
+          rate: (
+            ((totalTransactionPages - anomaly_in_transaction) /
+              totalTransactionPages) *
+            100
+          ).toFixed(2),
         },
-        metaDataForPagination: {
-          page,
-          pageSize,
-          total: totalTransactionPages,
-          totalPages,
-          start: (page - 1) * pageSize + 1,
-          end: Math.min(page * pageSize, totalTransactionPages),
-        },
-      });
+        partialTransactions: anomaly_in_transaction,
+        issuesReported: issuesReported,
+      },
+      metaDataForPagination: {
+        page,
+        pageSize,
+        total: totalTransactionPages,
+        totalPages,
+        start: (page - 1) * pageSize + 1,
+        end: Math.min(page * pageSize, totalTransactionPages),
+      },
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Internal Server Error!", error });
