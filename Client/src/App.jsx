@@ -28,7 +28,7 @@ const App = () => {
       {/* Beneficiary Routes */}
       <Route path="/beneficiary/dashboard" element={<BeneficiaryDashboard />} />
       <Route
-        path="/beneficary/transaction-history"
+        path="/beneficiary/transaction-history"
         element={<BeneficiaryTransactionHistory />}
       />
       <Route path='grievance/submit' element={<BeneficiaryGrievance />} />

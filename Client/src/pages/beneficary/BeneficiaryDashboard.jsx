@@ -44,7 +44,7 @@ const BeneficiaryDashboard = () => {
   function handleNavClick(section) {
     switch (section) {
       case "TransactionHistory":
-        navigate("/beneficary/transaction-history");
+        navigate("/beneficiary/transaction-history");
         break;
       case "ReportIssue":
         navigate("/grievance/submit");
@@ -72,8 +72,8 @@ const BeneficiaryDashboard = () => {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
           <div>
             <p className="flex gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 text-center"></p>
-            <h1 className="flex gap-2 text-xl font-bold text-slate-900 items-center">
-              <GiWheat className="text-blue-600" size={30} />
+            <h1 className="flex gap-2 text-sm sm:text-xl font-bold text-slate-900 items-center">
+              <GiWheat className="text-blue-600 text-xl sm:text-2xl" />
               <span>Ration Transparency Portal</span>
             </h1>
           </div>
@@ -99,7 +99,7 @@ const BeneficiaryDashboard = () => {
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
         </div>
       ) : (
-        <div className="mx-auto w-full max-w-6xl px-6 pb-12 pt-6">
+        <div className="mx-auto w-full max-w-6xl pb-12 pt-6">
           <nav className="mb-6 flex flex-wrap items-center gap-4 text-sm font-semibold">
             <button className="rounded-full bg-blue-50 px-4 py-2 text-blue-700 shadow-sm">
               My Ration
