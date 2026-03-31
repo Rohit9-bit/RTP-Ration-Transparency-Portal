@@ -1,5 +1,4 @@
 import { prisma } from "../DB/db.config.js";
-import { Prisma } from "@prisma/client";
 
 const dashboard = async (req, res) => {
   try {
@@ -9,7 +8,7 @@ const dashboard = async (req, res) => {
     const totalRationDistributed = await prisma.transaction_log.aggregate({
       where: {
         createdAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+          gte: new Date(new Date().getFullYear(), new Date().getMonth() - 2, 1),
         },
       },
       _sum: {
@@ -50,7 +49,7 @@ const dashboard = async (req, res) => {
       const newMonth = new Date(
         now.getFullYear(),
         now.getMonth() - (last_Months - i),
-        1
+        1,
       );
       months.push(formatMonthLabel(newMonth));
       monthsWithYear.push(monthKey(newMonth));
@@ -59,7 +58,7 @@ const dashboard = async (req, res) => {
     const startDate = new Date(
       now.getFullYear(),
       now.getMonth() - last_Months,
-      1
+      1,
     );
     const endDate = new Date();
 
@@ -99,12 +98,12 @@ const dashboard = async (req, res) => {
     for (const eff of monthsWithYear) {
       const entry = DataMap.get(eff);
       if (!entry) {
-        efficiency.push(null);
+        efficiency.push(0);
       } else {
         efficiency.push(
           +((entry.quantity_received / entry.quantity_entitled) * 100).toFixed(
-            2
-          )
+            2,
+          ),
         );
       }
     }
@@ -136,7 +135,7 @@ const dashboard = async (req, res) => {
           acc.quantity_received += curr.quantity_received ?? 0;
           return acc;
         },
-        { quantity_entitled: 0, quantity_received: 0 }
+        { quantity_entitled: 0, quantity_received: 0 },
       );
       return {
         distrct: distrct.district,
@@ -144,7 +143,7 @@ const dashboard = async (req, res) => {
         received: total.quantity_received,
         efficiency:
           +((total.quantity_received / total.quantity_entitled) * 100).toFixed(
-            2
+            2,
           ) || 100,
       };
     });
@@ -166,14 +165,14 @@ const dashboard = async (req, res) => {
     }
 
     const final_district_efficiency_array = Array.from(
-      districtEfficiency.values()
+      districtEfficiency.values(),
     );
 
     // Top Performing distribution centers
 
     const topDistributionCenters = await prisma.distribution_center.findMany({
       select: {
-        center_id: true,
+        center_name: true,
         address: true,
         transaction_logs: {
           select: {
@@ -202,10 +201,10 @@ const dashboard = async (req, res) => {
             quantity_received: 0,
             beneficiaryId: "",
             numberOfFamiy: 0,
-          }
+          },
         );
         return {
-          center_id: entry.center_id,
+          center_name: entry.center_name,
           address: entry.address,
           efficiency:
             +(
@@ -214,7 +213,7 @@ const dashboard = async (req, res) => {
             ).toFixed(2) || 0,
           numberOfFamilyServed: total.numberOfFamiy,
         };
-      }
+      },
     );
 
     function getTop4(arr, n) {
@@ -229,7 +228,6 @@ const dashboard = async (req, res) => {
     }
 
     const top4 = getTop4(resultsForTopDistributionCenters, 4);
-
 
     // Quantity distribution trends
 
@@ -270,7 +268,7 @@ const dashboard = async (req, res) => {
 
       // 2. Look for the commodity within this month
       const existingComm = monthData.commodityDetails.find(
-        (c) => c.commodityName === commodityName
+        (c) => c.commodityName === commodityName,
       );
 
       if (existingComm) {
@@ -289,33 +287,41 @@ const dashboard = async (req, res) => {
 
     // Total individiual commodity distribution for this month
     const commodity_names = await prisma.commodity.groupBy({
-      by: ['commodity_id', 'commodity_name'],
+      by: ["commodity_id", "commodity_name"],
     });
 
     const individual_commodity_data = [];
 
-    for(const commodity_name of commodity_names){
-      const total_individual_commodity_distributed = await prisma.transaction_log.aggregate({
-        where: {
-          commodityId: commodity_name.commodity_id,
-          createdAt: {
-            gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
-          }
-        },
-        _sum: {
-          quantity_received: true,
-        }
-        
-      })
-      individual_commodity_data.push({commodity_name: commodity_name.commodity_name, total_distribution: total_individual_commodity_distributed._sum.quantity_received})
+    for (const commodity_name of commodity_names) {
+      const total_individual_commodity_distributed =
+        await prisma.transaction_log.aggregate({
+          where: {
+            commodityId: commodity_name.commodity_id,
+            createdAt: {
+              gte: new Date(
+                new Date().getFullYear(),
+                new Date().getMonth() - 1,
+                1,
+              ),
+            },
+          },
+          _sum: {
+            quantity_received: true,
+          },
+        });
+      individual_commodity_data.push({
+        commodity_name: commodity_name.commodity_name,
+        total_distribution:
+          total_individual_commodity_distributed._sum.quantity_received,
+      });
     }
-    
 
     res.status(200).json({
       success: true,
       data: [
         {
-          total_ration_distributed: totalRationDistributed._sum.quantity_received,
+          total_ration_distributed:
+            totalRationDistributed._sum.quantity_received,
           total_active_distribution_centers: totalActiveDistributionCenters,
           total_grievances_filled: totalGrievancesFiled,
           total_beneficiary_registered: totalBeneficiariesRegistered,

@@ -10,12 +10,14 @@ app.use(express.static("public"));
 app.use(cookieParser());
 
 // CORS policy
-app.use(cors({
+app.use(
+  cors({
     origin: "http://localhost:5173",
     methods: ["GET", "POST"],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-}));
+  }),
+);
 
 import userRouter from "./routes/beneficiaryAuth.route.js";
 import ownerRouter from "./routes/ownerAuth.route.js";

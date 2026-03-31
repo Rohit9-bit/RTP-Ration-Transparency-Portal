@@ -4,6 +4,7 @@ const transactionHistory = async (req, res) => {
   try {
     const beneficiary = req.beneficiary;
     const page = Number(req.query.page) || 1;
+    const lastMonths = Number(req.query.lastMonths) || 3;
     const pageSize = 3;
 
     const thisMonthsTransaction = new Map();
@@ -12,7 +13,11 @@ const transactionHistory = async (req, res) => {
       where: {
         beneficiaryId: beneficiary.beneficiary_id,
         createdAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth() - 3, 1),
+          gte: new Date(
+            new Date().getFullYear(),
+            new Date().getMonth() - lastMonths,
+            1,
+          ),
         },
       },
       select: {
