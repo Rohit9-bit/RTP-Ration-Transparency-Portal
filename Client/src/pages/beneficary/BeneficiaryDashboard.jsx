@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axiosInstance from "../../utils/axiosInstance";
 import { useNavigate } from "react-router";
+import useLogoutHook from "../../hooks/handleLogOutHook.js";
 
 // Icons
 import { GiWheat } from "react-icons/gi";
@@ -11,6 +12,9 @@ const BeneficiaryDashboard = () => {
   const [accountInfo, setAccountInfo] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Logout Hook
+  const Logout = useLogoutHook();
 
   const navigate = useNavigate();
 
@@ -54,18 +58,6 @@ const BeneficiaryDashboard = () => {
     }
   }
 
-  function handleLogout() {
-    confirm("Are you sure you want to logout?") &&
-      axiosInstance
-        .post("/beneficiary/logout", { withCredentials: true })
-        .then(() => {
-          navigate("/beneficiary/login");
-        })
-        .catch(() => {
-          alert("Logout failed. Please try again.");
-        });
-  }
-
   return error === "" ? (
     <div className="min-h-screen bg-linear-to-br from-[#fffdf6] via-[#f6f9ff] to-[#fdf1ea] font-sans text-slate-900">
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -85,7 +77,7 @@ const BeneficiaryDashboard = () => {
               Welcome, {accountInfo?.full_name || "Beneficiary Name"}
             </span>
             <button
-              onClick={handleLogout}
+              onClick={Logout}
               className="text-sm font-semibold text-red-500 cursor-pointer"
             >
               Logout

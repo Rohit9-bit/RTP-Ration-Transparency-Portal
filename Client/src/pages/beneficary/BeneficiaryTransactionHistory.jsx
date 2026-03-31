@@ -130,15 +130,17 @@ const BeneficiaryTransactionHistory = () => {
     }
   }
 
+  // Handle logout function
   // function handleLogout() {
   //   confirm("Are you sure you want to logout?") &&
   //     axiosInstance
-  //       .post("/beneficiary/logout", { withCredentials: true })
+  //       .post("/beneficiary/logout", {}, { withCredentials: true })
   //       .then(() => {
   //         navigate("/beneficiary/login");
   //       })
-  //       .catch(() => {
+  //       .catch((error) => {
   //         alert("Logout failed. Please try again.");
+  //         console.log(error);
   //       });
   // }
 

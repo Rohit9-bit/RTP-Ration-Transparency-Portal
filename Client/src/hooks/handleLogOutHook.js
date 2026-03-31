@@ -21,16 +21,22 @@ import { useNavigate } from "react-router";
 function useLogoutHook() {
   const navigate = useNavigate();
 
-  const handleLogout = useCallback(async () => {
+  const handleLogout = useCallback(() => {
     confirm("Are you sure you want to logout?") &&
-      (await axiosInstance
-        .post("/beneficiary/logout", { withCredentials: true })
+      axiosInstance
+        .post(
+          "/beneficiary/logout",
+          {},
+          {
+            withCredentials: true,
+          },
+        )
         .then(() => {
           navigate("/beneficiary/login");
         })
         .catch(() => {
           alert("Logout failed. Please try again.");
-        }));
+        });
   });
 
   return handleLogout;

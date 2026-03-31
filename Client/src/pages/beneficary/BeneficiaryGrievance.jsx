@@ -1,13 +1,9 @@
-import React, { useState } from "react";
-import {
-  MdError,
-  MdPhone,
-  MdMessage,
-  MdInfo,
-} from "react-icons/md";
+import React, { useEffect, useState } from "react";
+import { MdError, MdPhone, MdMessage, MdInfo } from "react-icons/md";
 import { GiWheat } from "react-icons/gi";
 import { useNavigate } from "react-router";
-
+import axiosInstance from "../../utils/axiosInstance";
+import useLogoutHook from "../../hooks/handleLogOutHook.js";
 
 const BeneficiaryGrievance = () => {
   const [formData, setFormData] = useState({
@@ -18,13 +14,56 @@ const BeneficiaryGrievance = () => {
     actualReceived: "",
     description: "",
     priorityLevel: "Medium",
-    receivingEvidence: false,
   });
 
-  const navigate = useNavigate();
+  // Logout Hook
+  const Logout = useLogoutHook();
 
-  const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [dragActive, setDragActive] = useState(false);
+  console.log("Current form data:", formData);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // prevent reload on form submit
+    console.log("Submitting grievance with data:", formData);
+    try {
+      await axiosInstance.post(
+        "/grievance/submit",
+        {
+          issue_type: formData.issueType,
+          description: formData.description,
+          quantity_discrepancy_details: {
+            commodityId: formData.commodity,
+            expected_quantity: formData.expectedQuantity,
+            actual_quantity: formData.actualReceived,
+          },
+        },
+        {
+          withCredentials: true,
+          params: { priority: formData.priorityLevel },
+        },
+      );
+      console.log("Grievance submitted successfully!");
+    } catch (error) {
+      console.log("Error submitting grievance:", error);
+    }
+  };
+
+  // Recent Reports
+  // useEffect(() => {
+  //   try {
+  //     axiosInstance
+  //       .get("/grievance/history", { withCredentials: true })
+  //       .then((response) => {
+  //         console.log("Grievance history fetched successfully:", response.data);
+  //       })
+  //       .catch((error) => {
+  //         console.log("Error fetching grievance history:", error);
+  //       });
+  //   } catch (error) {
+  //     console.log("Error in grievance history useEffect:", error);
+  //   }
+  // }, []);
+
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -34,50 +73,10 @@ const BeneficiaryGrievance = () => {
     }));
   };
 
-  // const handleDrag = (e) => {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-  //   if (e.type === "dragenter" || e.type === "dragover") {
-  //     setDragActive(true);
-  //   } else if (e.type === "dragleave") {
-  //     setDragActive(false);
-  //   }
+  // const handleSaveDraft = () => {
+  //   console.log("Draft saved:", formData);
+  //   // Add save draft logic here
   // };
-
-  // const handleDrop = (e) => {
-  //   e.preventDefault();
-  //   e.stopPropagation();
-  //   setDragActive(false);
-
-  //   if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-  //     handleFiles(e.dataTransfer.files);
-  //   }
-  // };
-
-  // const handleFileInput = (e) => {
-  //   if (e.target.files && e.target.files[0]) {
-  //     handleFiles(e.target.files);
-  //   }
-  // };
-
-  // const handleFiles = (files) => {
-  //   const newFiles = Array.from(files).map((file) => ({
-  //     name: file.name,
-  //     size: (file.size / 1024).toFixed(2) + " KB",
-  //   }));
-  //   setUploadedFiles((prev) => [...prev, ...newFiles]);
-  // };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Add submission logic here
-  };
-
-  const handleSaveDraft = () => {
-    console.log("Draft saved:", formData);
-    // Add save draft logic here
-  };
 
   function handleNavClick(section) {
     switch (section) {
@@ -91,18 +90,6 @@ const BeneficiaryGrievance = () => {
         break;
     }
   }
-
-  // function handleLogout() {
-  //   confirm("Are you sure you want to logout?") &&
-  //     axiosInstance
-  //       .post("/beneficiary/logout", { withCredentials: true })
-  //       .then(() => {
-  //         navigate("/beneficiary/login");
-  //       })
-  //       .catch(() => {
-  //         alert("Logout failed. Please try again.");
-  //       });
-  // }
 
   const recentReports = [
     { id: "Ticket #07-2024-..", status: "Resolved", date: "Dec 16, 2026" },
@@ -129,7 +116,7 @@ const BeneficiaryGrievance = () => {
               Welcome, {"Beneficiary Name"}
             </span>
             <button
-              
+              onClick={Logout}
               className="text-sm font-semibold text-red-500 cursor-pointer"
             >
               Logout
@@ -234,9 +221,10 @@ const BeneficiaryGrievance = () => {
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                         >
                           <option value="">Select</option>
-                          <option value="rice">Rice</option>
-                          <option value="wheat">Wheat</option>
-                          <option value="sugar">Sugar</option>
+                          <option value="COMM36476">Rice</option>
+                          <option value="COMM35473">Wheat</option>
+                          <option value="COMM46532">Sugar</option>
+                          <option value="COMM43874">Mustard Oil</option>
                         </select>
                       </div>
                       <div>
@@ -344,13 +332,13 @@ const BeneficiaryGrievance = () => {
 
                 {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">
-                  <button
+                  {/* <button
                     type="button"
                     onClick={handleSaveDraft}
                     className="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors font-medium"
                   >
                     Save as Draft
-                  </button>
+                  </button> */}
                   <button
                     type="submit"
                     className="px-6 py-2.5 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium flex items-center justify-center"
