@@ -44,7 +44,7 @@ const dashboard = async (req, res) => {
     const months = [];
     const monthsWithYear = [];
     const now = new Date();
-    const last_Months = 3;
+    const last_Months = req.query?.trend || 5;
     for (let i = 1; i <= last_Months; i++) {
       const newMonth = new Date(
         now.getFullYear(),
@@ -287,7 +287,7 @@ const dashboard = async (req, res) => {
 
     // Total individiual commodity distribution for this month
     const commodity_names = await prisma.commodity.groupBy({
-      by: ["commodity_id", "commodity_name"],
+      by: ["commodity_id", "commodity_name", "unit"],
     });
 
     const individual_commodity_data = [];
@@ -300,7 +300,7 @@ const dashboard = async (req, res) => {
             createdAt: {
               gte: new Date(
                 new Date().getFullYear(),
-                new Date().getMonth() - 1,
+                new Date().getMonth() - 3,
                 1,
               ),
             },
@@ -313,6 +313,7 @@ const dashboard = async (req, res) => {
         commodity_name: commodity_name.commodity_name,
         total_distribution:
           total_individual_commodity_distributed._sum.quantity_received,
+        unit: commodity_name.unit,
       });
     }
 

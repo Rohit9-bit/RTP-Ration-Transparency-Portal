@@ -4,7 +4,7 @@ const getCenterDetails = async (req, res) => {
   try {
     const { state, district } = req.query;
     const centers = await prisma.distribution_center.groupBy({
-      by: ["state", "district", "center_id"],
+      by: ["state", "district", "center_name"],
       where: {
         state: state,
         district: district,
