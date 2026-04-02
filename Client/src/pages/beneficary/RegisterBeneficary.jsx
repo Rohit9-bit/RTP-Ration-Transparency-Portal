@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import axiosInstance from "../../utils/axiosInstance";
-import { centersData, dummyCentersId } from "../../utils/centersData";
+import { centersData } from "../../utils/centersData";
+import { GiWheat } from "react-icons/gi";
 
 const RegisterBeneficary = () => {
   const [formData, setFormData] = useState({
@@ -15,7 +16,7 @@ const RegisterBeneficary = () => {
     district: "",
     address: "",
     rationCardNo: "",
-    centerId: "",
+    center: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +39,7 @@ const RegisterBeneficary = () => {
         setCentersId([]);
         setErrors((prev) => ({
           ...prev,
-          centerId:
+          center:
             "Failed to load centers. Please check your state and district.",
         }));
       });
@@ -58,6 +59,11 @@ const RegisterBeneficary = () => {
         [name]: "",
       }));
     }
+  };
+
+  const handleRedirectToPublicDashboard = () => {
+    confirm("You are redirecting to public dashboard!");
+    navigate("/");
   };
 
   const validateForm = () => {
@@ -91,7 +97,7 @@ const RegisterBeneficary = () => {
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (!formData.rationCardNo.trim())
       newErrors.rationCardNo = "Ration Card Number is required";
-    if (!formData.centerId.trim()) newErrors.centerId = "Center ID is required";
+    if (!formData.center.trim()) newErrors.center = "Center is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -105,11 +111,13 @@ const RegisterBeneficary = () => {
     try {
       // Add your API call here
       axiosInstance
-        .post("/beneficiary/register", formData, {withCredentials: true})
+        .post("/beneficiary/register", formData, { withCredentials: true })
         .then((response) => {
           console.log("Registration successful:", response.data);
           // You can redirect the user or show a success message here
-          alert("Registration successful! You are now redirecting to the dashboard.");
+          alert(
+            "Registration successful! You are now redirecting to the dashboard.",
+          );
           navigate("/beneficiary/dashboard");
         })
         .catch((error) => {
@@ -131,7 +139,31 @@ const RegisterBeneficary = () => {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-blue-600 to-purple-700 flex items-center justify-center p-4 py-12">
+    <div className="min-h-screen bg-linear-to-br from-blue-600 to-purple-700 flex flex-col items-center justify-center">
+      <header className="border-b border-slate-200 bg-white backdrop-blur mx-auto w-full mb-5">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
+          <div>
+            <p className="flex gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 text-center"></p>
+            <h1 className="flex gap-2 text-sm sm:text-xl font-bold text-slate-900 items-center">
+              <GiWheat className="text-blue-600 text-xl sm:text-2xl" />
+              <span>Ration Transparency Portal</span>
+            </h1>
+          </div>
+          <div className="flex items-center gap-4 text-sm text-slate-600">
+            <select className="rounded-full border border-slate-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <option value="Eng">Eng</option>
+              <option value="Eng">Hin</option>
+            </select>
+
+            <button
+              onClick={() => handleRedirectToPublicDashboard()}
+              className="rounded-md px-3 py-1 bg-blue-600 text-sm font-semibold text-white cursor-pointer"
+            >
+              Public Dashboard
+            </button>
+          </div>
+        </div>
+      </header>
       <div className="w-full max-w-6xl">
         <div className="bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col lg:flex-row">
           {/* Left Side - Branding & Features */}
@@ -565,15 +597,15 @@ const RegisterBeneficary = () => {
                     htmlFor="centerId"
                     className="block text-sm font-semibold text-gray-800 mb-2"
                   >
-                    Center ID *
+                    Center *
                   </label>
                   <select
                     id="centerId"
                     name="centerId"
-                    value={formData.centerId}
+                    value={formData.center}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-2.5 border-2 rounded-lg text-sm font-medium focus:outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60 ${
-                      errors.centerId
+                      errors.center
                         ? "border-red-400 focus:border-red-500 focus:bg-red-50"
                         : "border-gray-200 focus:border-blue-600 focus:bg-blue-50"
                     }`}
@@ -583,10 +615,10 @@ const RegisterBeneficary = () => {
                     {formData.state && formData.district
                       ? centersId.centers.map((center) => (
                           <option
-                            key={center.center_id}
-                            value={center.center_id}
+                            key={center.center_name}
+                            value={center.center_name}
                           >
-                            {center.center_id}
+                            {center.center_name}
                           </option>
                         ))
                       : ["select state and district first"].map((msg) => (
@@ -595,10 +627,8 @@ const RegisterBeneficary = () => {
                           </option>
                         ))}
                   </select>
-                  {errors.centerId && (
-                    <p className="text-red-600 text-xs mt-1">
-                      {errors.centerId}
-                    </p>
+                  {errors.center && (
+                    <p className="text-red-600 text-xs mt-1">{errors.center}</p>
                   )}
                 </div>
               </div>

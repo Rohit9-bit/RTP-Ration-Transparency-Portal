@@ -33,39 +33,13 @@ import {
   YAxis,
 } from "recharts";
 import axiosInstance from "../../utils/axiosInstance";
+import { useNavigate } from "react-router";
 
 const districtComparison = [
   { region: "North Zone", efficiency: 97.9, color: "bg-emerald-500" },
   { region: "South Zone", efficiency: 94.2, color: "bg-blue-500" },
   { region: "East Zone", efficiency: 90.8, color: "bg-violet-500" },
   { region: "West Zone", efficiency: 88.4, color: "bg-amber-500" },
-];
-
-const advancedStats = [
-  {
-    title: "Monthly Distribution Volume",
-    value: "1.28M kg",
-    note: "+3.2% from previous month",
-    tone: "text-emerald-600",
-  },
-  {
-    title: "Wheat Inventory",
-    value: "895K kg",
-    note: "Current stock across centers",
-    tone: "text-blue-600",
-  },
-  {
-    title: "Rice Inventory",
-    value: "245K kg",
-    note: "Current stock across centers",
-    tone: "text-violet-600",
-  },
-  {
-    title: "Kerosene Allocation",
-    value: "168 KL",
-    note: "Expected monthly allocation",
-    tone: "text-amber-600",
-  },
 ];
 
 const alerts = [
@@ -109,26 +83,25 @@ const performanceDistributionData = [
   { name: "Average (60%+)", value: 25, color: "#f59e0b" },
 ];
 
-const advancedTrendData = [
-  { period: "W1", wheat: 32, rice: 24, sugar: 12 },
-  { period: "W2", wheat: 35, rice: 25, sugar: 13 },
-  { period: "W3", wheat: 37, rice: 27, sugar: 14 },
-  { period: "W4", wheat: 39, rice: 29, sugar: 15 },
-  { period: "W5", wheat: 41, rice: 31, sugar: 16 },
-  { period: "W6", wheat: 44, rice: 33, sugar: 17 },
-];
-
 const commodityBreakdownData = [
-  { name: "Wheat", value: 38, color: "#2563eb" },
-  { name: "Rice", value: 30, color: "#10b981" },
-  { name: "Sugar", value: 18, color: "#f59e0b" },
-  { name: "Kerosene", value: 14, color: "#a855f7" },
+  { name: "Wheat", value: 25, color: "#2563eb" },
+  { name: "Rice", value: 25, color: "#10b981" },
+  { name: "Sugar", value: 25, color: "#f59e0b" },
+  { name: "Mustard Oil", value: 25, color: "#a855f7" },
 ];
 
 const PublicDashboard = () => {
   const [systemPerformanceMatrics, setSystemPerformanceMetrics] = useState({});
   const [regionalPerformance, setRegionalPerformance] = useState([]);
   const [topPerfromingCenter, setTopPeformingCenter] = useState([]);
+  const [distributionTrend, SetDistributionTrend] = useState([]);
+  const [monthlyCommodityData, setMonthlyCommodityData] = useState([]);
+
+  const navigate = useNavigate();
+  function handleBeneficiaryLogin() {
+    confirm("You are navigating to the beneficiary login page!");
+    navigate("/beneficiary/login");
+  }
 
   function setData(data) {
     setSystemPerformanceMetrics({
@@ -140,6 +113,8 @@ const PublicDashboard = () => {
     });
     setRegionalPerformance(data[0].district_efficiency);
     setTopPeformingCenter(data[0].top_performing_distribution_centers);
+    SetDistributionTrend(data[0].distribution_trends_array);
+    setMonthlyCommodityData(data[0].individual_commodity_data);
   }
 
   useEffect(() => {
@@ -283,6 +258,68 @@ const PublicDashboard = () => {
     }
   }
 
+  const advancedTrend2 = distributionTrend.map((entry) => {
+    const flat = { period: entry.month };
+    entry.commodityDetails.forEach((item) => {
+      const key = item.commodityName;
+      flat[key] = item.quantity_received;
+    });
+
+    return flat;
+  });
+
+  const advancedTrendData = [
+    { period: "M1", wheat: 32, rice: 24, sugar: 12, MustardOil: 12 },
+    { period: "M2", wheat: 35, rice: 25, sugar: 13, MustardOil: 12 },
+    { period: "M3", wheat: 37, rice: 27, sugar: 14, MustardOil: 12 },
+    { period: "M4", wheat: 39, rice: 29, sugar: 15, MustardOil: 12 },
+    { period: "M5", wheat: 41, rice: 31, sugar: 16, MustardOil: 12 },
+    { period: "M6", wheat: 44, rice: 33, sugar: 17, MustardOil: 12 },
+  ];
+
+  const advancedStats = [
+    {
+      title:
+        `${monthlyCommodityData[0]?.commodity_name} Distribution` ||
+        "Sugar Distribution",
+      value:
+        monthlyCommodityData[0]?.total_distribution +
+          monthlyCommodityData[0]?.unit || "1.28M kg",
+      note: "+3.2% from previous month",
+      tone: "text-emerald-600",
+    },
+    {
+      title:
+        `${monthlyCommodityData[1]?.commodity_name} Distribution` ||
+        "Wheat Distribution",
+      value:
+        monthlyCommodityData[1]?.total_distribution +
+          monthlyCommodityData[1]?.unit || "895K kg",
+      note: "Current stock across centers",
+      tone: "text-blue-600",
+    },
+    {
+      title:
+        `${monthlyCommodityData[2]?.commodity_name} Distribution` ||
+        "Rice Distribution",
+      value:
+        monthlyCommodityData[2]?.total_distribution +
+          monthlyCommodityData[2]?.unit || "245K kg",
+      note: "Current stock across centers",
+      tone: "text-violet-600",
+    },
+    {
+      title:
+        `${monthlyCommodityData[3]?.commodity_name} Distribution` ||
+        "MustardOil Distribution",
+      value:
+        monthlyCommodityData[3]?.total_distribution +
+          monthlyCommodityData[3]?.unit || "168 KL",
+      note: "Expected monthly allocation",
+      tone: "text-amber-600",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800">
       <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
@@ -300,7 +337,10 @@ const PublicDashboard = () => {
               <option value="Eng">Hin</option>
             </select>
 
-            <button className="rounded-md px-3 py-1 bg-blue-600 text-sm font-semibold text-white cursor-pointer">
+            <button
+              onClick={() => handleBeneficiaryLogin()}
+              className="rounded-md px-3 py-1 bg-blue-600 text-sm font-semibold text-white cursor-pointer"
+            >
               Beneficiary Login
             </button>
           </div>
@@ -816,7 +856,7 @@ const PublicDashboard = () => {
                 <div className="h-44 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <AreaChart
-                      data={advancedTrendData}
+                      data={advancedTrend2 || advancedTrendData}
                       margin={{ top: 8, right: 10, left: 0, bottom: 0 }}
                     >
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -829,24 +869,31 @@ const PublicDashboard = () => {
                       <Tooltip />
                       <Area
                         type="monotone"
-                        dataKey="wheat"
+                        dataKey={"Wheat" || "wheat"}
                         stackId="1"
                         stroke="#10b981"
                         fill="#10b98199"
                       />
                       <Area
                         type="monotone"
-                        dataKey="rice"
+                        dataKey={"Rice" || "rice"}
                         stackId="1"
                         stroke="#3b82f6"
                         fill="#3b82f699"
                       />
                       <Area
                         type="monotone"
-                        dataKey="sugar"
+                        dataKey={"Sugar" || "sugar"}
                         stackId="1"
                         stroke="#f59e0b"
                         fill="#f59e0b99"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey={"Mustard oil" || "MustardOil"}
+                        stackId="1"
+                        stroke="#cb10f5"
+                        fill="#cf30f3"
                       />
                     </AreaChart>
                   </ResponsiveContainer>
@@ -895,7 +942,7 @@ const PublicDashboard = () => {
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {advancedStats.map((stat, index) => (
                 <article
-                  key={stat.title}
+                  key={index}
                   className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                 >
                   <div className="flex items-center justify-between">
