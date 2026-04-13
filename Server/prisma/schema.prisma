@@ -29,20 +29,20 @@ model beneficiary {
   transaction_logs   transaction_log[]
 }
 
-model shop_owner {
-  manager_id          String               @id @unique
-  full_name           String
-  email               String
-  phone_no            String
-  state               String
-  district            String
-  address             String
-  owner_id            String
-  password            String
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime?            @updatedAt
-  distribution_center distribution_center?
-}
+// model shop_owner {
+//   manager_id          String               @id @unique
+//   full_name           String
+//   email               String
+//   phone_no            String
+//   state               String
+//   district            String
+//   address             String
+//   owner_id            String
+//   password            String
+//   createdAt           DateTime             @default(now())
+//   updatedAt           DateTime?            @updatedAt
+//   distribution_center distribution_center?
+// }
 
 model distribution_center {
   center_id          String              @id @unique
@@ -51,10 +51,8 @@ model distribution_center {
   state              String
   district           String
   createdAt          DateTime            @default(now())
-  managerId          String              @unique
   updatedAt          DateTime?           @default(now()) @updatedAt @db.Timestamp(6)
   beneficiaries      beneficiary[]
-  shopOwner          shop_owner          @relation(fields: [managerId], references: [manager_id])
   grievances         grievance[]
   shop_stock_ledgers shop_stock_ledger[]
   transaction_logs   transaction_log[]
@@ -74,7 +72,7 @@ model commodity {
 
 model quota {
   quota_id           String      @id @unique
-  month_year         DateTime    @default(now())
+  month_year         String
   quantity_entitled  Float
   quantity_remaining Float
   beneficiaryId      String
@@ -101,6 +99,7 @@ model transaction_log {
   beneficiary                beneficiary         @relation(fields: [beneficiaryId], references: [beneficiary_id])
   distributionCenter         distribution_center @relation(fields: [centerId], references: [center_id])
   commodity                  commodity           @relation(fields: [commodityId], references: [commodity_id])
+  grievance                  grievance?
 }
 
 model shop_stock_ledger {
@@ -108,6 +107,7 @@ model shop_stock_ledger {
   stock_in_quantity  Float
   stock_out_quantity Float
   centerId           String
+  month_year         String?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime?           @updatedAt
   commodityId        String
@@ -123,12 +123,14 @@ model grievance {
   priority_level     String              @default("Medium")
   centerId           String
   beneficiaryId      String
-  commodityId        String
-  expected_quantity  Float
-  actual_quantity    Float
+  commodityId        String?
+  transactionId      String?             @unique
+  expected_quantity  Float?
+  actual_quantity    Float?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime?           @updatedAt
   beneficiary        beneficiary         @relation(fields: [beneficiaryId], references: [beneficiary_id])
   distributionCenter distribution_center @relation(fields: [centerId], references: [center_id])
-  commodity          commodity           @relation(fields: [commodityId], references: [commodity_id])
+  commodity          commodity?          @relation(fields: [commodityId], references: [commodity_id])
+  transaction        transaction_log?    @relation(fields: [transactionId], references: [transaction_id])
 }

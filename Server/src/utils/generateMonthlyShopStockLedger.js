@@ -3,31 +3,24 @@ import { customAlphabet } from "nanoid";
 
 const generateMonthlyShopStockLedger = async () => {
   try {
-    const totalBeneficiariesWithFamily = await prisma.beneficiary.aggregate({
+    const getCentersAndFamilyDetails = await prisma.beneficiary.groupBy({
+      by: ["centerId"],
       _sum: {
         family_size: true,
       },
-    });
-
-    const allCommodities = await prisma.commodity.findMany({
-      select: {
-        commodity_id: true,
-        commodity_name: true,
-        unit: true,
+      _count: {
+        beneficiary_id: true,
       },
     });
 
-    const centers = await prisma.distribution_center.findMany({
-      select: {
-        center_id: true,
-      },
-    });
+    const allCommodities = await prisma.commodity.findMany();
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
-
+    const date = new Date();
+    const options = { month: "long", year: "numeric" };
     const ledgerRecord = [];
 
-    for (const center of centers) {
+    for (const center of getCentersAndFamilyDetails) {
       for (const commodity of allCommodities) {
         if (
           commodity.commodity_name === "Rice" ||
@@ -35,11 +28,11 @@ const generateMonthlyShopStockLedger = async () => {
         ) {
           ledgerRecord.push({
             ledger_id: "LEDG" + generateNumericId(),
-            stock_in_quantity:
-              totalBeneficiariesWithFamily._sum.family_size * 5,
+            stock_in_quantity: center._sum.family_size * 5,
             stock_out_quantity: 0,
-            centerId: center.center_id,
+            centerId: center.centerId,
             commodityId: commodity.commodity_id,
+            month_year: date.toLocaleDateString("eng-US", options),
           });
         }
 
@@ -49,23 +42,23 @@ const generateMonthlyShopStockLedger = async () => {
         ) {
           ledgerRecord.push({
             ledger_id: "LEDG" + generateNumericId(),
-            stock_in_quantity:
-              totalBeneficiariesWithFamily._sum.family_size * 2,
+            stock_in_quantity: center._count.beneficiary_id * 2,
             stock_out_quantity: 0,
-            centerId: center.center_id,
+            centerId: center.centerId,
             commodityId: commodity.commodity_id,
+            month_year: date.toLocaleDateString("eng-US", options),
           });
         }
       }
     }
 
-    const newStockLedgers = await prisma.shop_stock_ledger.createMany({
-      data: ledgerRecord,
-    });
-
-    if (!newStockLedgers) {
-      throw new Error("Something went wrong!");
-    }
+    await prisma.shop_stock_ledger
+      .createMany({
+        data: ledgerRecord,
+      })
+      .catch((error) => {
+        throw new Error(error);
+      });
   } catch (error) {
     console.log(error);
   }

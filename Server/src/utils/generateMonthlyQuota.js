@@ -30,6 +30,8 @@ const generateMonthlyQuota = async () => {
     });
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
+    const date = new Date();
+    const options = { month: "long", year: "numeric" };
 
     const quotaRecords = [];
 
@@ -45,6 +47,7 @@ const generateMonthlyQuota = async () => {
             commodityId: allCommodities[j].commodity_id,
             quantity_entitled: 5 * activeBeneficiaries[i].family_size,
             quantity_remaining: 5 * activeBeneficiaries[i].family_size,
+            month_year: date.toLocaleDateString("en-US", options),
           });
         }
 
@@ -58,6 +61,7 @@ const generateMonthlyQuota = async () => {
             commodityId: allCommodities[j].commodity_id,
             quantity_entitled: 2,
             quantity_remaining: 2,
+            month_year: date.toLocaleDateString("en-US", options),
           });
         }
       }
@@ -67,10 +71,9 @@ const generateMonthlyQuota = async () => {
       data: quotaRecords,
     });
 
-    if(!newQouta){
+    if (!newQouta) {
       throw new Error("Something went wrong!");
     }
-
   } catch (error) {
     console.log(error);
   }

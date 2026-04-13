@@ -54,20 +54,11 @@ const registerBeneficiary = async (req, res) => {
       },
     });
 
-    const shop_Owner_with_this_email = await prisma.shop_owner.findFirst({
-      where: {
-        email: email,
-      },
-    });
-
-    if (beneficiary_with_email || shop_Owner_with_this_email) {
-      return res.status(409).json({ message: "Please use different email address!" });
+    if (beneficiary_with_email) {
+      return res
+        .status(409)
+        .json({ message: "Please use different email address!" });
     }
-
-    // const mobile_number_regex = /^\d{10}$/;
-    // if (mobile_number_regex.test(phone_no)) {
-    //   return res.status(400).json({ message: "Invalid phone number!" });
-    // }
 
     const beneficiary_with_phone = await prisma.beneficiary.findFirst({
       where: {
@@ -75,13 +66,7 @@ const registerBeneficiary = async (req, res) => {
       },
     });
 
-    const shop_owner_with_this_number = await prisma.shop_owner.findFirst({
-      where: {
-        phone_no: phone_no,
-      },
-    });
-
-    if (beneficiary_with_phone || shop_owner_with_this_number) {
+    if (beneficiary_with_phone) {
       return res.status(409).json({ message: "Inalid mobile number!" });
     }
 
