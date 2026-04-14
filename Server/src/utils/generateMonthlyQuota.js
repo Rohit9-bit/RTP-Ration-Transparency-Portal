@@ -30,7 +30,11 @@ const generateMonthlyQuota = async () => {
     });
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
-    const date = new Date();
+    // const date = new Date();
+    const date = new Date(
+      Date.UTC(new Date().getFullYear(), new Date().getMonth() - 2, 2),
+    );
+
     const options = { month: "long", year: "numeric" };
 
     const quotaRecords = [];
@@ -48,6 +52,7 @@ const generateMonthlyQuota = async () => {
             quantity_entitled: 5 * activeBeneficiaries[i].family_size,
             quantity_remaining: 5 * activeBeneficiaries[i].family_size,
             month_year: date.toLocaleDateString("en-US", options),
+            createdAt: date.toISOString(),
           });
         }
 
@@ -62,6 +67,7 @@ const generateMonthlyQuota = async () => {
             quantity_entitled: 2,
             quantity_remaining: 2,
             month_year: date.toLocaleDateString("en-US", options),
+            createdAt: date.toISOString(),
           });
         }
       }

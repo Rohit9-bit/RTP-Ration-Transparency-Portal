@@ -1,5 +1,8 @@
 import { prisma } from "../DB/db.config.js";
 
+const date = new Date();
+const options = { month: "long", year: "numeric" };
+
 const beneficiaryDashboard = async (req, res) => {
   try {
     // My current Entitlement and This months status
@@ -12,9 +15,7 @@ const beneficiaryDashboard = async (req, res) => {
         commodityId: {
           in: ["COMM46532", "COMM35473", "COMM36476", "COMM43874"],
         },
-        month_year: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
-        },
+        month_year: date.toLocaleDateString("eng-US", options),
       },
       select: {
         month_year: true,

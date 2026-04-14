@@ -16,7 +16,11 @@ const generateMonthlyShopStockLedger = async () => {
     const allCommodities = await prisma.commodity.findMany();
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
-    const date = new Date();
+    const date = new Date(
+      Date.UTC(new Date().getFullYear(), new Date().getMonth() - 2, 2),
+    );
+    // const date = new Date();
+
     const options = { month: "long", year: "numeric" };
     const ledgerRecord = [];
 
@@ -33,6 +37,7 @@ const generateMonthlyShopStockLedger = async () => {
             centerId: center.centerId,
             commodityId: commodity.commodity_id,
             month_year: date.toLocaleDateString("eng-US", options),
+            createdAt: date.toISOString(),
           });
         }
 
@@ -47,6 +52,7 @@ const generateMonthlyShopStockLedger = async () => {
             centerId: center.centerId,
             commodityId: commodity.commodity_id,
             month_year: date.toLocaleDateString("eng-US", options),
+            createdAt: date.toISOString(),
           });
         }
       }

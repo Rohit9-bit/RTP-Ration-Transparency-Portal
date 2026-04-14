@@ -22,7 +22,11 @@ const getBeneficiaryEntitlements = async () => {
     });
 
     const generateNumericId = customAlphabet("0123456789", 5);
-    const date = new Date();
+    const date = new Date(
+      Date.UTC(new Date().getFullYear(), new Date().getMonth() - 2, 2),
+    );
+    // const date = new Date();
+
     const options = { month: "long", year: "numeric" };
 
     const EnetitlementRecord = [];
@@ -42,6 +46,9 @@ const getBeneficiaryEntitlements = async () => {
         },
       });
 
+      const setAnomaly = Boolean(Math.round(Math.random()));
+      const randomAmt = 1;
+
       for (const quota of getBeneficiaryQuota) {
         const getShopStockLedger = await prisma.shop_stock_ledger.findFirst({
           where: {
@@ -56,17 +63,18 @@ const getBeneficiaryEntitlements = async () => {
           },
         });
 
-        console.log("getShopStock: ", getShopStockLedger);
-        console.log("Quota: ", quota);
-
         EnetitlementRecord.push({
           transaction_id: "TRANS" + generateNumericId(),
           quantity_entitled: quota.quantity_entitled,
-          quantity_received: quota.quantity_entitled,
+          quantity_received: setAnomaly
+            ? quota.quantity_entitled - randomAmt
+            : quota.quantity_entitled,
           is_verified_by_beneficiery: false,
           beneficiaryId: beneficiaries.beneficiary_id,
           centerId: beneficiaries.centerId,
           commodityId: quota.commodityId,
+          anomaly_type: setAnomaly ? "Quantity Variance" : null,
+          createdAt: date.toISOString(),
         });
 
         await prisma.shop_stock_ledger
@@ -75,8 +83,11 @@ const getBeneficiaryEntitlements = async () => {
               ledger_id: getShopStockLedger.ledger_id,
             },
             data: {
-              stock_out_quantity:
-                getShopStockLedger.stock_out_quantity + quota.quantity_entitled,
+              stock_out_quantity: setAnomaly
+                ? getShopStockLedger.stock_out_quantity +
+                  (quota.quantity_entitled - randomAmt)
+                : getShopStockLedger.stock_out_quantity +
+                  quota.quantity_entitled,
             },
           })
           .catch((error) => {
@@ -89,8 +100,10 @@ const getBeneficiaryEntitlements = async () => {
               quota_id: quota.quota_id,
             },
             data: {
-              quantity_remaining:
-                quota.quantity_remaining - quota.quantity_entitled,
+              quantity_remaining: setAnomaly
+                ? quota.quantity_remaining -
+                  (quota.quantity_entitled - randomAmt)
+                : quota.quantity_remaining - quota.quantity_entitled,
             },
           })
           .catch((error) => {
@@ -111,4 +124,6 @@ const getBeneficiaryEntitlements = async () => {
   }
 };
 
-export {getBeneficiaryEntitlements};
+getBeneficiaryEntitlements();
+
+// export { getBeneficiaryEntitlements };

@@ -18,40 +18,33 @@ const server = async () => {
 await server();
 dbConnect();
 
-import cron from "node-cron";
-import { generateMonthlyQuota } from "./utils/generateMonthlyQuota.js";
-import { generateMonthlyShopStockLedger } from "./utils/generateMonthlyShopStockLedger.js";
-import { getBeneficiaryEntitlements } from "./utils/getBeneficiaryEntitlement.js";
+// import cron from "node-cron";
+// import { generateMonthlyQuota } from "./utils/generateMonthlyQuota.js";
+// import { generateMonthlyShopStockLedger } from "./utils/generateMonthlyShopStockLedger.js";
 
-// Schedule the job to run at 00:05 (5 minutes past midnight) on the 1st day of every month
-cron.schedule(
-  "* * * * *",
-  async () => {
-    console.log("Running monthly quota and stock-ledger generation job...");
-    try {
-      await generateMonthlyQuota().catch((error) => {
-        throw new Error(error);
-      });
-      await generateMonthlyShopStockLedger().catch((error) => {
-        throw new Error(error);
-      });
+// // Schedule the job to run at 00:05 (5 minutes past midnight) on the 1st day of every month
+// cron.schedule(
+//   "* * * * *",
+//   async () => {
+//     console.log("Running monthly quota and stock-ledger generation job...");
+//     try {
+//       await generateMonthlyQuota().catch((error) => {
+//         throw new Error(error);
+//       });
+//       await generateMonthlyShopStockLedger().catch((error) => {
+//         throw new Error(error);
+//       });
 
-      console.log("Running Benenficiary Entitlement job");
-      setTimeout(async () => {
-        await getBeneficiaryEntitlements().catch((error) => {
-          throw new Error(error);
-        });
-      }, 3000);
-      console.log("Job completed successfully.");
-    } catch (error) {
-      console.error(
-        "Error in monthly quota and stock-ledger generation job:",
-        error,
-      );
-    }
-  },
-  {
-    scheduled: true,
-    timezone: "Asia/Kolkata", // Or your relevant timezone
-  },
-);
+//       console.log("Job completed successfully.");
+//     } catch (error) {
+//       console.error(
+//         "Error in monthly quota and stock-ledger generation job:",
+//         error,
+//       );
+//     }
+//   },
+//   {
+//     scheduled: true,
+//     timezone: "Asia/Kolkata", // Or your relevant timezone
+//   },
+// );
