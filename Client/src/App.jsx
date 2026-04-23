@@ -10,6 +10,7 @@ import LoginBeneficiary from "./pages/beneficary/LoginBeneficiary.jsx";
 import BeneficiaryDashboard from "./pages/beneficary/BeneficiaryDashboard.jsx";
 import BeneficiaryTransactionHistory from "./pages/beneficary/BeneficiaryTransactionHistory.jsx";
 import BeneficiaryGrievance from "./pages/beneficary/BeneficiaryGrievance.jsx";
+import BeneficiaryAccountDetails from "./pages/beneficary/BeneficiaryAccountDetails.jsx";
 
 const App = () => {
   return (
@@ -31,7 +32,11 @@ const App = () => {
         path="/beneficiary/transaction-history"
         element={<BeneficiaryTransactionHistory />}
       />
-      <Route path='grievance/submit' element={<BeneficiaryGrievance />} />
+      <Route path="/beneficiary/grievance/submit" element={<BeneficiaryGrievance />} />
+      <Route
+        path="/beneficiary/account-details"
+        element={<BeneficiaryAccountDetails />}
+      />
       {/* <Route path='grievance/history' element={} /> */}
 
       {/* Shop Owner Routes */}

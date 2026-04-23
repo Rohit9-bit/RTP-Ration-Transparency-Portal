@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { MdError, MdPhone, MdMessage, MdInfo } from "react-icons/md";
-import { GiWheat } from "react-icons/gi";
 import { useNavigate } from "react-router";
 import axiosInstance from "../../utils/axiosInstance";
-import useLogoutHook from "../../hooks/handleLogOutHook.js";
-import { use } from "react";
+import DashboardHeader from "../../components/DashboardHeader.jsx";
 
 const BeneficiaryGrievance = () => {
   const [formData, setFormData] = useState({
@@ -24,7 +22,6 @@ const BeneficiaryGrievance = () => {
   const [expandedIndex, setExpandedIndex] = useState(null);
 
   // Logout Hook
-  const Logout = useLogoutHook();
 
   const options = {
     month: "short",
@@ -106,6 +103,9 @@ const BeneficiaryGrievance = () => {
       case "TransactionHistory":
         navigate("/beneficiary/transaction-history");
         break;
+      case "Settings":
+        navigate("/beneficiary/account-details");
+        break;
       default:
         break;
     }
@@ -135,31 +135,7 @@ const BeneficiaryGrievance = () => {
   return error === "" ? (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation Bar */}
-      <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-          <div>
-            <p className="flex gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 text-center"></p>
-            <h1 className="flex gap-2 text-sm sm:text-xl font-bold text-slate-900 items-center">
-              <GiWheat className="text-blue-600 text-xl sm:text-2xl" />
-              <span>Ration Transparency Portal</span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-slate-600">
-            <button className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-              EN
-            </button>
-            <span className="hidden text-sm font-medium text-slate-700 sm:inline">
-              Welcome, {"Beneficiary Name"}
-            </span>
-            <button
-              onClick={Logout}
-              className="text-sm font-semibold text-red-500 cursor-pointer"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
+      <DashboardHeader />
 
       {isLoading ? (
         <div className="flex h-screen items-center justify-center">
@@ -188,7 +164,12 @@ const BeneficiaryGrievance = () => {
             <button className="rounded-full bg-blue-50 px-4 py-2 text-blue-700 shadow-sm">
               Report Issue
             </button>
-            <button className="rounded-full px-4 py-2 text-slate-500 hover:text-slate-700">
+            <button
+              onClick={() => {
+                handleNavClick("Settings");
+              }}
+              className="rounded-full px-4 py-2 text-slate-500 hover:text-slate-700"
+            >
               Settings
             </button>
           </nav>
@@ -384,7 +365,7 @@ const BeneficiaryGrievance = () => {
               {/* What Happens Next */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
                 <div className="flex items-start space-x-2 mb-3">
-                  <MdInfo className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <MdInfo className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                   <h3 className="font-semibold text-gray-900">
                     What Happens Next?
                   </h3>
@@ -492,31 +473,6 @@ const BeneficiaryGrievance = () => {
                   </p>
                   <p className="text-gray-600">Hours: 24/7 Support</p>
                 </div>
-              </div>
-
-              {/* Helpful Tips */}
-              <div className="bg-white rounded-lg shadow-sm p-5">
-                <h3 className="font-semibold text-gray-900 mb-3">
-                  Helpful Tips
-                </h3>
-                <ul className="space-y-2 text-sm text-gray-700">
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    <span>Be specific with dates and locations</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    <span>Include photos when possible</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    <span>Keep your transaction receipts handy</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="text-blue-600 mr-2">•</span>
-                    <span>Double-check all information before submitting</span>
-                  </li>
-                </ul>
               </div>
             </div>
           </div>

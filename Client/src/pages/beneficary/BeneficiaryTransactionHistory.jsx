@@ -9,11 +9,11 @@ import {
   MdVisibility,
   MdWarning,
 } from "react-icons/md";
-import { GiWheat } from "react-icons/gi";
 
 import { useNavigate } from "react-router";
 import axiosInstance from "../../utils/axiosInstance";
-import useLogoutHook from "../../hooks/handleLogOutHook.js";
+import DashboardHeader from "../../components/DashboardHeader.jsx";
+
 const BeneficiaryTransactionHistory = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,7 +24,6 @@ const BeneficiaryTransactionHistory = () => {
   const [error, setError] = useState("");
 
   // useLogOutHook
-  const logout = useLogoutHook();
 
   const navigate = useNavigate();
 
@@ -135,7 +134,10 @@ const BeneficiaryTransactionHistory = () => {
         navigate("/beneficiary/dashboard");
         break;
       case "ReportIssue":
-        navigate("/grievance/submit");
+        navigate("/beneficiary/grievance/submit");
+        break;
+      case "Settings":
+        navigate("/beneficiary/account-details");
         break;
       default:
         break;
@@ -149,31 +151,7 @@ const BeneficiaryTransactionHistory = () => {
       </div>
     ) : (
       <div className="min-h-screen bg-gray-50">
-        <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
-          <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-            <div>
-              <p className="flex gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 text-center"></p>
-              <h1 className="flex gap-2 text-sm sm:text-xl font-bold text-slate-900 items-center">
-                <GiWheat className="text-blue-600 text-xl sm:text-2xl" />
-                <span>Ration Transparency Portal</span>
-              </h1>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-slate-600">
-              <button className="rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                EN
-              </button>
-              <span className="hidden text-sm font-medium text-slate-700 sm:inline">
-                Welcome, {"Beneficiary Name"}
-              </span>
-              <button
-                onClick={logout}
-                className="text-sm font-semibold text-red-500 cursor-pointer"
-              >
-                Logout
-              </button>
-            </div>
-          </div>
-        </header>
+        <DashboardHeader />
 
         <div className="mx-auto max-w-6xl py-6">
           {/* Mobile Header */}
@@ -212,7 +190,12 @@ const BeneficiaryTransactionHistory = () => {
             >
               Report Issue
             </button>
-            <button className="rounded-full px-4 py-2 text-slate-500 hover:text-slate-700">
+            <button
+              onClick={() => {
+                handleNavClick("Settings");
+              }}
+              className="rounded-full px-4 py-2 text-slate-500 hover:text-slate-700"
+            >
               Settings
             </button>
           </nav>
