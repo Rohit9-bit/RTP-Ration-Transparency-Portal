@@ -47,7 +47,8 @@ const getBeneficiaryEntitlements = async () => {
       });
 
       const setAnomaly = Boolean(Math.round(Math.random()));
-      const randomAmt = 1;
+      let randomAmt = 1;
+      
 
       for (const quota of getBeneficiaryQuota) {
         const getShopStockLedger = await prisma.shop_stock_ledger.findFirst({
@@ -62,6 +63,10 @@ const getBeneficiaryEntitlements = async () => {
             ledger_id: true,
           },
         });
+
+        if(quota.quantity_entitled > 2){
+          randomAmt = Math.floor(Math.random() * 10) + 1;
+        }
 
         EnetitlementRecord.push({
           transaction_id: "TRANS" + generateNumericId(),

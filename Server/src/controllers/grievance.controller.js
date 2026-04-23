@@ -3,7 +3,12 @@ import { prisma } from "../DB/db.config.js";
 
 const newGrievance = async (req, res) => {
   try {
-    const { issue_type, description, quantity_discrepancy_details } = req?.body;
+    const {
+      issue_type,
+      description,
+      quantity_discrepancy_details,
+      relatedTransaction,
+    } = req?.body;
     const { priority } = req?.query;
     const beneficiary = req?.beneficiary;
 
@@ -17,15 +22,25 @@ const newGrievance = async (req, res) => {
         .json({ message: "Please select your issue type!" });
     }
 
-    if (quantity_discrepancy_details.length === 0) {
-      return res
-        .status(400)
-        .json({ message: "Please provide quantity discrepancy details!" });
-    }
+    // if (quantity_discrepancy_details.length === 0) {
+    //   return res
+    //     .status(400)
+    //     .json({ message: "Please provide quantity discrepancy details!" });
+    // }
 
-    if(quantity_discrepancy_details.some((item) => !item.commodityId || !item.expected_quantity || !item.actual_quantity)) {
-      return res.status(400).json({ message: "Please provide complete quantity discrepancy details for all items!" });
-    }
+    // if (
+    //   quantity_discrepancy_details.some(
+    //     (item) =>
+    //       !item.commodityId || !item.expected_quantity || !item.actual_quantity,
+    //   )
+    // ) {
+    //   return res
+    //     .status(400)
+    //     .json({
+    //       message:
+    //         "Please provide complete quantity discrepancy details for all items!",
+    //     });
+    // }
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
 
@@ -36,14 +51,13 @@ const newGrievance = async (req, res) => {
         description,
         centerId: beneficiary.centerId,
         beneficiaryId: beneficiary.beneficiary_id,
-        commodityId: quantity_discrepancy_details.commodityId,
-        expected_quantity: parseFloat(
-          quantity_discrepancy_details.expected_quantity,
-        ),
-        actual_quantity: parseFloat(
-          quantity_discrepancy_details.actual_quantity,
-        ),
+        commodityId: quantity_discrepancy_details?.commodityId || null,
+        expected_quantity:
+          parseFloat(quantity_discrepancy_details?.expected_quantity) || null,
+        actual_quantity:
+          parseFloat(quantity_discrepancy_details?.actual_quantity) || null,
         priority_level: priority,
+        relatedTransacton: relatedTransaction || null,
       },
     });
 
@@ -59,9 +73,9 @@ const newGrievance = async (req, res) => {
 const allGrievances = async (req, res) => {
   try {
     const beneficiary = req.beneficiary;
-    const { page } = req.query || 1;
+    const page = Number(req.query.page) || 1;
     const pageSize = 5;
-    console.log("Beneficiary:-", beneficiary);
+    console.log(page);
 
     const grievances = await prisma.grievance.findMany({
       where: {
@@ -75,19 +89,19 @@ const allGrievances = async (req, res) => {
         expected_quantity: true,
         actual_quantity: true,
         status: true,
+        createdAt: true,
         commodity: {
           select: {
             commodity_name: true,
           },
         },
       },
-      skip: (page - 1) * pageSize,
+      orderBy: {
+        grievance_id: "asc",
+      },
+      skip: (Number(page) - 1) * pageSize,
       take: pageSize,
     });
-
-    if (grievances.length === 0) {
-      return res.status(404).json({ message: "No grievances found!" });
-    }
 
     res.status(200).json({
       message: "Recent grievances fetched successfully!",

@@ -100,9 +100,11 @@ const transactionHistory = async (req, res) => {
       },
     });
 
+    console.log("all transactions: ", succesfullTransactions);
+
     let anomaly_in_transaction = 0;
     for (const transaction of succesfullTransactions) {
-      if (transaction.anomaly_type === "Quantity Variance!") {
+      if (transaction.anomaly_type === "Quantity Variance") {
         anomaly_in_transaction++;
       }
     }
@@ -120,14 +122,14 @@ const transactionHistory = async (req, res) => {
       data2: {
         totalTransactions: totalTransactionPages,
         totalSuccessfulTransaction: {
-          success: totalTransactionPages - anomaly_in_transaction,
+          success: totalTransactionPages - anomaly_in_transaction / 4,
           rate: (
-            ((totalTransactionPages - anomaly_in_transaction) /
+            ((totalTransactionPages - anomaly_in_transaction / 4) /
               totalTransactionPages) *
             100
           ).toFixed(2),
         },
-        partialTransactions: anomaly_in_transaction,
+        partialTransactions: anomaly_in_transaction / 4,
         issuesReported: issuesReported,
       },
       metaDataForPagination: {
@@ -178,4 +180,24 @@ const approveTransaction = async (req, res) => {
   }
 };
 
-export { transactionHistory, approveTransaction };
+const recentTransactions = async (req, res) => {
+  try {
+    const beneficiary = req.beneficiary;
+    const recentTransactions = await prisma.transaction_log.groupBy({
+      by: ["createdAt"],
+      where: {
+        beneficiaryId: beneficiary.beneficiary_id,
+      },
+    });
+
+    res.status(200).json({
+      message: "Recent transactions fetched successfully!",
+      data: recentTransactions.sort((a, b) => a.createdAt - b.createdAt),
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Internal Server Error!", error });
+  }
+};
+
+export { transactionHistory, approveTransaction, recentTransactions };

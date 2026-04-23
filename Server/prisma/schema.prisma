@@ -72,7 +72,7 @@ model commodity {
 
 model quota {
   quota_id           String      @id @unique
-  month_year         String 
+  month_year         String
   quantity_entitled  Float
   quantity_remaining Float
   beneficiaryId      String
@@ -121,6 +121,7 @@ model grievance {
   description        String?
   status             String              @default("Pending")
   priority_level     String              @default("Medium")
+  relatedTransacton  String?
   centerId           String
   beneficiaryId      String
   commodityId        String?

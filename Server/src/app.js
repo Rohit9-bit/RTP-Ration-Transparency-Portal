@@ -34,7 +34,7 @@ app.use("/public", aggregatedDataRouter);
 // Beneficiary routes
 app.use("/beneficiary", userRouter);
 app.use("/beneficiary/transaction", transactionHistory);
-app.use("/grievance", grievanceRouter);
+app.use("/beneficiary/grievance", grievanceRouter);
 app.use("/beneficiary/dashboard", beneficiaryDashboardRouter);
 
 // Managers routes

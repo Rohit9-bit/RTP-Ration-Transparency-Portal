@@ -8,7 +8,7 @@ const dashboard = async (req, res) => {
     const totalRationDistributed = await prisma.transaction_log.aggregate({
       where: {
         createdAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth() - 2, 1),
+          gte: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
         },
       },
       _sum: {
@@ -33,26 +33,19 @@ const dashboard = async (req, res) => {
     const totalBeneficiariesRegistered = await prisma.beneficiary.count();
 
     // Distribution Efficiency trend
-    function formatMonthLabel(d) {
-      return d.toLocaleString("en-US", { month: "short" }); // Jan, Feb, ...
-    }
 
-    function monthKey(d) {
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    }
-
-    const months = [];
     const monthsWithYear = [];
     const now = new Date();
-    const last_Months = req.query?.trend || 5;
+    const options = { month: "short", year: "numeric" };
+    const last_Months = Number(req.query.trend) || 3;
     for (let i = 1; i <= last_Months; i++) {
       const newMonth = new Date(
         now.getFullYear(),
         now.getMonth() - (last_Months - i),
         1,
       );
-      months.push(formatMonthLabel(newMonth));
-      monthsWithYear.push(monthKey(newMonth));
+
+      monthsWithYear.push(newMonth.toLocaleDateString("eng-US", options));
     }
 
     const startDate = new Date(
@@ -79,40 +72,25 @@ const dashboard = async (req, res) => {
       },
     });
 
-    const DataMap = new Map();
-    for (const row of efficiencyData) {
-      const key = monthKey(row.createdAt);
-      if (!DataMap.has(key)) {
-        DataMap.set(key, {
-          createdAt: key,
-          quantity_entitled: row._sum.quantity_entitled,
-          quantity_received: row._sum.quantity_received,
-        });
-      }
-      DataMap.get(key).quantity_entitled += row._sum.quantity_entitled;
-      DataMap.get(key).quantity_received += row._sum.quantity_received;
-    }
-
-    const efficiency = [];
-
-    for (const eff of monthsWithYear) {
-      const entry = DataMap.get(eff);
-      if (!entry) {
-        efficiency.push(0);
-      } else {
-        efficiency.push(
-          +((entry.quantity_received / entry.quantity_entitled) * 100).toFixed(
-            2,
-          ),
-        );
+    const district_efficiency_trend = [];
+    for (const keyMonth of monthsWithYear) {
+      for (const entry of efficiencyData) {
+        if (
+          keyMonth === entry.createdAt.toLocaleDateString("eng-US", options)
+        ) {
+          district_efficiency_trend.push({
+            month_year: keyMonth,
+            efficiency: (
+              (entry._sum.quantity_received / entry._sum.quantity_entitled) *
+              100
+            ).toFixed(2),
+          });
+        }
       }
     }
-
-    const distribution_efficiency_trend = [
-      { months: months, efficiency: efficiency },
-    ];
 
     // District Performance
+
 
     const districtWithCenters = await prisma.distribution_center.findMany({
       take: 5,
@@ -144,7 +122,7 @@ const dashboard = async (req, res) => {
         efficiency:
           +((total.quantity_received / total.quantity_entitled) * 100).toFixed(
             2,
-          ) || 100,
+          ) || 0,
       };
     });
 
@@ -159,8 +137,11 @@ const dashboard = async (req, res) => {
         });
       } else {
         districtEfficiency.get(key).centers += 1;
-        const eff = districtEfficiency.get(key).efficiency;
-        districtEfficiency.get(key).efficiency = (eff + entry.efficiency) / 2;
+        const eff = Number(districtEfficiency.get(key).efficiency);
+        districtEfficiency.get(key).efficiency = (
+          (eff + entry.efficiency) /
+          2
+        ).toFixed(2);
       }
     }
 
@@ -253,7 +234,7 @@ const dashboard = async (req, res) => {
     const quantityTotal = new Map();
 
     for (const entry of commodityDistribution) {
-      const month = monthKey(entry.createdAt);
+      const month = entry.createdAt.toLocaleDateString("eng-US", options);
 
       // Skip if this month isn't in your monthsWithYear filter (optional)
       if (!monthsWithYear.includes(month)) continue;
@@ -326,7 +307,7 @@ const dashboard = async (req, res) => {
           total_active_distribution_centers: totalActiveDistributionCenters,
           total_grievances_filled: totalGrievancesFiled,
           total_beneficiary_registered: totalBeneficiariesRegistered,
-          distribution_efficiency_trend: distribution_efficiency_trend,
+          district_efficiency_trend: district_efficiency_trend,
           district_efficiency: final_district_efficiency_array,
           top_performing_distribution_centers: top4,
           distribution_trends_array: fianl_distribution_trends_array,
@@ -335,7 +316,6 @@ const dashboard = async (req, res) => {
       ],
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ message: "Internal Server Error!", error });
   }
 };
