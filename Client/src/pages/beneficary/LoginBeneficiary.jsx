@@ -16,8 +16,9 @@ const LoginBeneficiary = () => {
   const regex = /^[0-9]+$/;
 
   const handleRedirectToPublicDashboard = () => {
-    confirm("You are redirecting to public dashboard!");
-    navigate("/");
+    if (confirm("You are redirecting to public dashboard!")) {
+      navigate("/");
+    }
   };
 
   const handleInputChange = (e) => {

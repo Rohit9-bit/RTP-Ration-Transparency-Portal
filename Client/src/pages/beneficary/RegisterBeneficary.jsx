@@ -16,7 +16,7 @@ const RegisterBeneficary = () => {
     district: "",
     address: "",
     rationCardNo: "",
-    center: "",
+    centerId: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -45,6 +45,9 @@ const RegisterBeneficary = () => {
       });
   }, [formData.state, formData.district]);
 
+  console.log("CentersID", centersId);
+  console.log("FormData: ", formData);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -62,8 +65,9 @@ const RegisterBeneficary = () => {
   };
 
   const handleRedirectToPublicDashboard = () => {
-    confirm("You are redirecting to public dashboard!");
-    navigate("/");
+    if (confirm("You are redirecting to public dashboard!")) {
+      navigate("/");
+    }
   };
 
   const validateForm = () => {
@@ -97,7 +101,7 @@ const RegisterBeneficary = () => {
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (!formData.rationCardNo.trim())
       newErrors.rationCardNo = "Ration Card Number is required";
-    if (!formData.center.trim()) newErrors.center = "Center is required";
+    if (!formData.centerId.trim()) newErrors.center = "Center is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -602,7 +606,7 @@ const RegisterBeneficary = () => {
                   <select
                     id="centerId"
                     name="centerId"
-                    value={formData.center}
+                    value={formData.centerId}
                     onChange={handleInputChange}
                     className={`w-full px-4 py-2.5 border-2 rounded-lg text-sm font-medium focus:outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60 ${
                       errors.center
@@ -611,14 +615,18 @@ const RegisterBeneficary = () => {
                     }`}
                     disabled={isLoading}
                   >
-                    <option value="">Select centerId</option>
+                    <option value="">select center</option>
+
                     {formData.state && formData.district
                       ? centersId.centers.map((center) => (
                           <option
-                            key={center.center_name}
-                            value={center.center_name}
+                            key={center.center_id}
+                            value={center.center_id}
                           >
-                            {center.center_name}
+                            {center.center_name +
+                              " ( " +
+                              center.center_id +
+                              " )"}
                           </option>
                         ))
                       : ["select state and district first"].map((msg) => (

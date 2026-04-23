@@ -18,32 +18,36 @@ const BeneficiaryDashboard = () => {
 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    setIsLoading(true);
-
-    axiosInstance
-      .get("/beneficiary/dashboard", { withCredentials: true })
-      .then((response) => {
-        processDashboardData(response.data.data[0]);
-      })
-      .catch((error) => {
-        alert("Failed to load dashboard data. Please try again later.");
-        setError(
-          error.response?.data?.message ||
-            "An error occurred while fetching data.",
-        );
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, []);
-
   function processDashboardData(data) {
     if (!data) return;
     setCurrentEntitlement(data.thisMonthsQuota);
     setRecentTransactions(data.thisMonthsTransactionArray);
     setAccountInfo(data.beneficiaryAccountsDetails);
   }
+
+  useEffect(() => {
+    setIsLoading(true);
+
+    try {
+      axiosInstance
+        .get("/beneficiary/dashboard", { withCredentials: true })
+        .then((response) => {
+          processDashboardData(response.data.data[0]);
+          setIsLoading(false);
+        })
+        .catch((error) => {
+          alert("Failed to load dashboard data. Please try again later.");
+          setError(
+            error.response?.data?.message ||
+              "An error occurred while fetching data.",
+          );
+        });
+    } catch (error) {
+      console.log(error);
+      setError("An unexpected error occurred. Please try again later.");
+      setIsLoading(false);
+    }
+  }, []);
 
   function handleNavClick(section) {
     switch (section) {
@@ -184,26 +188,30 @@ const BeneficiaryDashboard = () => {
                             item.commodity.unit +
                             ")" +
                             " / " +
-                            item.quantity_remaining +
+                            (Number(item.quantity_entitled) -
+                              Number(item.quantity_remaining)) +
                             " (" +
                             item.commodity.unit +
-                            ")"}
+                            ")"}{" "}
                           (
-                          {((item.quantity_entitled - item.quantity_remaining) /
-                            item.quantity_entitled) *
-                            100 +
-                            "%"}
+                          {(
+                            ((item.quantity_entitled -
+                              item.quantity_remaining) /
+                              item.quantity_entitled) *
+                            100
+                          ).toFixed(2) + "%"}
                           )
                         </span>
                       </div>
                       <div className="h-2 w-full rounded-full bg-amber-100">
                         <div
                           className={`h-2 w-[${
-                            ((item.quantity_entitled -
-                              item.quantity_remaining) /
-                              item.quantity_entitled) *
-                              100 +
-                            "%"
+                            Math.floor(
+                              ((item.quantity_entitled -
+                                item.quantity_remaining) /
+                                item.quantity_entitled) *
+                                100,
+                            ) + "%"
                           }] rounded-full bg-amber-500`}
                         ></div>
                       </div>
@@ -265,23 +273,6 @@ const BeneficiaryDashboard = () => {
                       </p>
                     </div>
                   ))}
-
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold text-slate-500">
-                        March 8, 2024
-                      </span>
-                      <span className="rounded-full bg-amber-100 px-2 py-1 text-[11px] font-semibold text-amber-700">
-                        Partial
-                      </span>
-                    </div>
-                    <p className="mt-2 text-sm font-semibold text-slate-800">
-                      Fair Price Shop #123
-                    </p>
-                    <p className="text-xs text-slate-500">
-                      Rice: 2 kg, Kerosene: 1 L
-                    </p>
-                  </div>
                 </div>
               </div>
             </section>
