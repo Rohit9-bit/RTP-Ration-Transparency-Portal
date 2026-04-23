@@ -51,35 +51,6 @@ const transactionController = async (req, res) => {
       }
     }
 
-    // const beneficiary_quota = await prisma.quota.findMany({
-    //   where: {
-    //     beneficiaryId: beneficiary.beneficiary_id,
-    //     createdAt: {
-    //       gt: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    //     },
-    //   },
-    //   select: {
-    //     quantity_entitled: true,
-    //     commodityId: true,
-    //   },
-    // });
-
-    // console.log(beneficiary_quota);
-
-    // for (const quota of beneficiary_quota) {
-    //   for (const commoditiesReceive of commoditiesReceived) {
-    //     console.log(commoditiesReceive.quantity_receive, quota.quantity_entitled)
-    //     if (
-    //       commoditiesReceive.commodityId === quota.commodityId &&
-    //       !(commoditiesReceive.quantity_receive > quota.quantity_entitled)
-    //     ) {
-    //       return res
-    //         .status(400)
-    //         .json({ message: "Exceeds Beneficiary Entitlement!" });
-    //     }
-    //   }
-    // }
-
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
 
     const transactionIds = [];
@@ -190,8 +161,6 @@ const transactionController = async (req, res) => {
         });
       }
     }
-
-    console.log("Records of Transaction: ", transactionIds);
 
     return res.status(200).json({
       success: true,

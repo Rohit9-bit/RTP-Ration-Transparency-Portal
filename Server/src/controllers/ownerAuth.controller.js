@@ -77,7 +77,6 @@ const registerShopOwner = async (req, res) => {
       },
     });
 
-    console.log(shopOwner);
 
     if (shopOwner) {
       return res

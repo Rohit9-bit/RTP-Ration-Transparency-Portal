@@ -75,7 +75,6 @@ const allGrievances = async (req, res) => {
     const beneficiary = req.beneficiary;
     const page = Number(req.query.page) || 1;
     const pageSize = 5;
-    console.log(page);
 
     const grievances = await prisma.grievance.findMany({
       where: {

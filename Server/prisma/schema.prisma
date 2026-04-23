@@ -29,21 +29,6 @@ model beneficiary {
   transaction_logs   transaction_log[]
 }
 
-// model shop_owner {
-//   manager_id          String               @id @unique
-//   full_name           String
-//   email               String
-//   phone_no            String
-//   state               String
-//   district            String
-//   address             String
-//   owner_id            String
-//   password            String
-//   createdAt           DateTime             @default(now())
-//   updatedAt           DateTime?            @updatedAt
-//   distribution_center distribution_center?
-// }
-
 model distribution_center {
   center_id          String              @id @unique
   address            String

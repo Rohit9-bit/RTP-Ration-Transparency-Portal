@@ -213,4 +213,214 @@ const logOutBeneficiary = async (req, res) => {
   }
 };
 
-export { registerBeneficiary, loginBeneficiary, logOutBeneficiary };
+const getBeneficiaryAccountDetails = async (req, res) => {
+  try {
+    const beneficiary = await prisma.beneficiary.findFirst({
+      where: {
+        beneficiary_id: req.beneficiary.beneficiary_id,
+      },
+      select: {
+        beneficiary_id: true,
+        full_name: true,
+        family_size: true,
+        address: true,
+        ration_card_no: true,
+      },
+    });
+
+    if (!beneficiary) {
+      return res.status(404).json({ message: "Beneficiary not found!" });
+    }
+
+    return res.status(200).json({
+      message: "Account details fetched successfully!",
+      data: beneficiary,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error!" });
+  }
+};
+
+const updateBeneficiaryAccountDetails = async (req, res) => {
+  const { address, family_size, currentPassword, newPassword } = req.body;
+
+  try {
+    const updates = {};
+
+    if (address !== undefined) {
+      const normalizedAddress = String(address).trim();
+      if (!normalizedAddress) {
+        return res.status(400).json({ message: "Address cannot be empty!" });
+      }
+      updates.address = normalizedAddress;
+    }
+
+    if (family_size !== undefined) {
+      const parsedFamilySize = parseInt(family_size, 10);
+      if (
+        Number.isNaN(parsedFamilySize) ||
+        parsedFamilySize < 1 ||
+        parsedFamilySize > 20
+      ) {
+        return res.status(400).json({
+          message: "Please enter a valid family size between 1 and 20!",
+        });
+      }
+      updates.family_size = parsedFamilySize;
+    }
+
+    if (newPassword !== undefined && String(newPassword).trim() !== "") {
+      if (!currentPassword || String(currentPassword).trim() === "") {
+        return res
+          .status(400)
+          .json({ message: "Current password is required!" });
+      }
+
+      if (String(newPassword).length < 8) {
+        return res.status(400).json({
+          message: "New password must be at least 8 characters long!",
+        });
+      }
+
+      const beneficiaryWithPassword = await prisma.beneficiary.findFirst({
+        where: {
+          beneficiary_id: req.beneficiary.beneficiary_id,
+        },
+        select: {
+          password: true,
+        },
+      });
+
+      if (!beneficiaryWithPassword) {
+        return res.status(404).json({ message: "Beneficiary not found!" });
+      }
+
+      const isCurrentPasswordValid = await bcrypt.compare(
+        currentPassword,
+        beneficiaryWithPassword.password,
+      );
+
+      if (!isCurrentPasswordValid) {
+        return res
+          .status(400)
+          .json({ message: "Current password is incorrect!" });
+      }
+
+      const salt = await bcrypt.genSalt(13);
+      updates.password = await bcrypt.hash(newPassword, salt);
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No valid fields provided for update!" });
+    }
+
+    const updatedBeneficiary = await prisma.beneficiary.update({
+      where: {
+        beneficiary_id: req.beneficiary.beneficiary_id,
+      },
+      data: updates,
+      select: {
+        beneficiary_id: true,
+        full_name: true,
+        family_size: true,
+        address: true,
+        ration_card_no: true,
+      },
+    });
+
+    return res.status(200).json({
+      message: "Account details updated successfully!",
+      data: updatedBeneficiary,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error!" });
+  }
+};
+
+const deleteBeneficiaryAccount = async (req, res) => {
+  const { currentPassword, confirmationText } = req.body;
+
+  try {
+    if (!currentPassword || String(currentPassword).trim() === "") {
+      return res.status(400).json({ message: "Current password is required!" });
+    }
+
+    if (confirmationText !== "DELETE") {
+      return res
+        .status(400)
+        .json({ message: "Please type DELETE to confirm account deletion!" });
+    }
+
+    const beneficiary = await prisma.beneficiary.findFirst({
+      where: {
+        beneficiary_id: req.beneficiary.beneficiary_id,
+      },
+      select: {
+        beneficiary_id: true,
+        password: true,
+      },
+    });
+
+    if (!beneficiary) {
+      return res.status(404).json({ message: "Beneficiary not found!" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      beneficiary.password,
+    );
+
+    if (!isPasswordValid) {
+      return res
+        .status(400)
+        .json({ message: "Current password is incorrect!" });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.grievance.deleteMany({
+        where: {
+          beneficiaryId: beneficiary.beneficiary_id,
+        },
+      });
+
+      await tx.quota.deleteMany({
+        where: {
+          beneficiaryId: beneficiary.beneficiary_id,
+        },
+      });
+
+      await tx.transaction_log.deleteMany({
+        where: {
+          beneficiaryId: beneficiary.beneficiary_id,
+        },
+      });
+
+      await tx.beneficiary.delete({
+        where: {
+          beneficiary_id: beneficiary.beneficiary_id,
+        },
+      });
+    });
+
+    res.clearCookie("jwt");
+    return res
+      .status(200)
+      .json({ message: "Account deleted permanently and successfully!" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal Server Error!" });
+  }
+};
+
+export {
+  registerBeneficiary,
+  loginBeneficiary,
+  logOutBeneficiary,
+  getBeneficiaryAccountDetails,
+  updateBeneficiaryAccountDetails,
+  deleteBeneficiaryAccount,
+};

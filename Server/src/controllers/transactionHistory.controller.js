@@ -100,7 +100,6 @@ const transactionHistory = async (req, res) => {
       },
     });
 
-    console.log("all transactions: ", succesfullTransactions);
 
     let anomaly_in_transaction = 0;
     for (const transaction of succesfullTransactions) {
