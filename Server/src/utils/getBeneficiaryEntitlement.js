@@ -48,7 +48,6 @@ const getBeneficiaryEntitlements = async () => {
 
       const setAnomaly = Boolean(Math.round(Math.random()));
       let randomAmt = 1;
-      
 
       for (const quota of getBeneficiaryQuota) {
         const getShopStockLedger = await prisma.shop_stock_ledger.findFirst({
@@ -64,7 +63,7 @@ const getBeneficiaryEntitlements = async () => {
           },
         });
 
-        if(quota.quantity_entitled > 2){
+        if (quota.quantity_entitled > 2) {
           randomAmt = Math.floor(Math.random() * 10) + 1;
         }
 
@@ -129,6 +128,4 @@ const getBeneficiaryEntitlements = async () => {
   }
 };
 
-getBeneficiaryEntitlements();
-
-// export { getBeneficiaryEntitlements };
+export { getBeneficiaryEntitlements };
