@@ -28,6 +28,11 @@ import aggregatedDataRouter from "./routes/aggregatedData.route.js";
 import beneficiaryDashboardRouter from "./routes/benficiaryDashboard.route.js";
 import getCenterDetails from "./routes/getCenterDetails.route.js";
 
+
+// Test route
+import testRouter from "./routes/test.route.js";
+app.use("/api", testRouter);
+
 // Public routes
 app.use("/public", aggregatedDataRouter);
 
