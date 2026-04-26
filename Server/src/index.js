@@ -21,8 +21,7 @@ dbConnect();
 import cron from "node-cron";
 import { generateMonthlyQuota } from "./utils/generateMonthlyQuota.js";
 import { generateMonthlyShopStockLedger } from "./utils/generateMonthlyShopStockLedger.js";
-import { getBeneficiaryEntitlement } from "./utils/getBeneficiaryEntitlement.js";
-
+import { getBeneficiaryEntitlements } from "./utils/getBeneficiaryEntitlement.js";
 // Schedule the job to run at 00:05 (5 minutes past midnight) on the 1st day of every month
 cron.schedule(
   "* * * * *",
