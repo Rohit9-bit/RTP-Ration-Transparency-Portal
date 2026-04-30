@@ -14,7 +14,6 @@ const router = Router();
 router.route("/register").post(registerBeneficiary);
 router.route("/login").post(loginBeneficiary);
 router.route("/logOut").post(protectedRoute, logOutBeneficiary);
-router.route("/logout").post(protectedRoute, logOutBeneficiary);
 router.route("/account").get(protectedRoute, getBeneficiaryAccountDetails);
 router
   .route("/account/update")

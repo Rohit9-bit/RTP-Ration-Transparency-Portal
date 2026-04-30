@@ -12,7 +12,7 @@ app.use(cookieParser());
 // CORS policy
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://rtp-ration-transparency-portal-4o9344a4d.vercel.app",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -27,7 +27,6 @@ import grievanceRouter from "./routes/grievance.route.js";
 import aggregatedDataRouter from "./routes/aggregatedData.route.js";
 import beneficiaryDashboardRouter from "./routes/benficiaryDashboard.route.js";
 import getCenterDetails from "./routes/getCenterDetails.route.js";
-
 
 // Test route
 import testRouter from "./routes/test.route.js";
