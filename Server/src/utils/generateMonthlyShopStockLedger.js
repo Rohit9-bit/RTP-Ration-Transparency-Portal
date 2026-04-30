@@ -17,7 +17,7 @@ const generateMonthlyShopStockLedger = async () => {
 
     const generateNumericId = customAlphabet("0123456789", 5); // 5-digit numeric suffix
     const date = new Date(
-      Date.UTC(new Date().getFullYear(), new Date().getMonth() - 2, 2),
+      Date.UTC(new Date().getFullYear(), new Date().getMonth(), 1),
     );
     // const date = new Date();
 

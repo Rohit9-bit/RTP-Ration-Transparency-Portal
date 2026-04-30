@@ -75,6 +75,7 @@ model transaction_log {
   quantity_entitled          Float
   quantity_received          Float
   is_verified_by_beneficiery Boolean
+  month_year                 String?
   anomaly_type               String?
   beneficiaryId              String
   centerId                   String

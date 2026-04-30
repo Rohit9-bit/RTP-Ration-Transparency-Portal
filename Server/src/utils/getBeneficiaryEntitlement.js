@@ -23,7 +23,7 @@ const getBeneficiaryEntitlements = async () => {
 
     const generateNumericId = customAlphabet("0123456789", 5);
     const date = new Date(
-      Date.UTC(new Date().getFullYear(), new Date().getMonth() - 2, 2),
+      Date.UTC(new Date().getFullYear(), new Date().getMonth(), 2),
     );
     // const date = new Date();
 
@@ -65,6 +65,8 @@ const getBeneficiaryEntitlements = async () => {
 
         if (quota.quantity_entitled > 2) {
           randomAmt = Math.floor(Math.random() * 10) + 1;
+        } else {
+          randomAmt = 1;
         }
 
         EnetitlementRecord.push({

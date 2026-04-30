@@ -3,29 +3,48 @@ import { prisma } from "../DB/db.config.js";
 const transactionHistory = async (req, res) => {
   try {
     const beneficiary = req.beneficiary;
-    const page = Number(req.query.page) || 1;
+    // const page = Number(req.query.page) || 1;
     const lastMonths = Number(req.query.lastMonths) || 3;
-    const pageSize = 3;
+    // const pageSize = 3;
 
-    const thisMonthsTransaction = new Map();
-
-    const recentTransactions = await prisma.transaction_log.findMany({
+    // testing new query
+    const thisMonthsTestTransaction = new Map();
+    const testTransaction = await prisma.transaction_log.groupBy({
+      by: ["createdAt", "month_year"],
       where: {
         beneficiaryId: beneficiary.beneficiary_id,
         createdAt: {
           gte: new Date(
             new Date().getFullYear(),
-            new Date().getMonth() - lastMonths,
+            new Date().getMonth() - (lastMonths - 1),
             1,
           ),
+        },
+      },
+
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    const month_year_array = [];
+    for (const trans of testTransaction) {
+      month_year_array.push(trans.month_year);
+    }
+
+    const transactions = await prisma.transaction_log.findMany({
+      where: {
+        beneficiaryId: beneficiary.beneficiary_id,
+        month_year: {
+          in: month_year_array,
         },
       },
       select: {
         quantity_entitled: true,
         quantity_received: true,
         anomaly_type: true,
-        is_verified_by_beneficiery: true,
         createdAt: true,
+        month_year: true,
         distributionCenter: {
           select: {
             center_name: true,
@@ -39,14 +58,16 @@ const transactionHistory = async (req, res) => {
           },
         },
       },
-      skip: (page - 1) * (pageSize * 4),
-      take: pageSize * 4,
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
-    for (const entry of recentTransactions) {
-      const key = entry.createdAt.toISOString().slice(0, 7);
-      if (!thisMonthsTransaction.has(key)) {
-        thisMonthsTransaction.set(key, {
+    for (const entry of transactions) {
+      const key = entry.month_year;
+      if (!thisMonthsTestTransaction.has(key)) {
+        thisMonthsTestTransaction.set(key, {
+          month_year: entry.month_year,
           dateTime: entry.createdAt,
           shopDetails: {
             name: entry.distributionCenter.center_name,
@@ -64,7 +85,7 @@ const transactionHistory = async (req, res) => {
           ],
         });
       } else {
-        thisMonthsTransaction.get(key).items.push({
+        thisMonthsTestTransaction.get(key).items.push({
           name: entry.commodity.commodity_name,
           quantity_entitled: entry.quantity_entitled,
           quantity_received: entry.quantity_received,
@@ -75,9 +96,11 @@ const transactionHistory = async (req, res) => {
       }
     }
 
-    const thisMonthsTransactionArray = Array.from(
-      thisMonthsTransaction.values(),
+    const thisMonthsTestTransactionArray = Array.from(
+      thisMonthsTestTransaction.values(),
     );
+
+    // end testing new query
 
     const totalTransaction = await prisma.transaction_log.count({
       where: {
@@ -87,7 +110,7 @@ const transactionHistory = async (req, res) => {
 
     const totalTransactionPages = totalTransaction / 4;
 
-    const totalPages = Math.ceil(totalTransactionPages / pageSize);
+    // const totalPages = Math.ceil(lastMonths / pageSize);
 
     // Total Successfull Transaction
     const succesfullTransactions = await prisma.transaction_log.groupBy({
@@ -99,7 +122,6 @@ const transactionHistory = async (req, res) => {
         _all: true,
       },
     });
-
 
     let anomaly_in_transaction = 0;
     for (const transaction of succesfullTransactions) {
@@ -117,7 +139,7 @@ const transactionHistory = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data1: thisMonthsTransactionArray,
+      data1: thisMonthsTestTransactionArray,
       data2: {
         totalTransactions: totalTransactionPages,
         totalSuccessfulTransaction: {
@@ -130,14 +152,6 @@ const transactionHistory = async (req, res) => {
         },
         partialTransactions: anomaly_in_transaction / 4,
         issuesReported: issuesReported,
-      },
-      metaDataForPagination: {
-        page,
-        pageSize,
-        total: totalTransactionPages,
-        totalPages,
-        start: (page - 1) * pageSize + 1,
-        end: Math.min(page * pageSize, totalTransactionPages),
       },
     });
   } catch (error) {
