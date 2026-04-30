@@ -33,7 +33,7 @@ import {
   YAxis,
 } from "recharts";
 import axiosInstance from "../../utils/axiosInstance";
-import { useNavigate, useParams } from "react-router";
+import { data, useNavigate, useParams } from "react-router";
 
 const districtComparison = [
   { region: "North Zone", efficiency: 97.9, color: "bg-emerald-500" },
@@ -153,6 +153,8 @@ const PublicDashboard = () => {
       console.error("Unexpected error in public dashboard data fetch:", error);
     }
   }, [requestQuery]);
+
+  console.log("systemPerformanceMatrics: ", systemPerformanceMatrics);
 
   const metricCards = [
     {
