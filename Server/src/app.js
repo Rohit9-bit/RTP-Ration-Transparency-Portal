@@ -12,7 +12,7 @@ app.use(cookieParser());
 // CORS policy
 app.use(
   cors({
-    origin: "https://rtp-ration-transparency-portal-4o9344a4d.vercel.app",
+    origin: "https://rtp-ration-transparency-portal-one.vercel.app",
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
