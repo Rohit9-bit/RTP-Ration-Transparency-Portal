@@ -114,7 +114,6 @@ const RegisterBeneficary = () => {
       axiosInstance
         .post("/beneficiary/register", formData, { withCredentials: true })
         .then((response) => {
-          console.log("Registration successful:", response.data);
           // You can redirect the user or show a success message here
           alert(
             "Registration successful! You are now redirecting to the dashboard.",

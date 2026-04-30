@@ -18,7 +18,7 @@ const BeneficiaryTransactionHistory = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [timeRange, setTimeRange] = useState("3");
-  const [transactionsData, setTransactionsData] = useState();
+  const [transactionsData, setTransactionsData] = useState([]);
   const [statsData, setStatsData] = useState();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -87,6 +87,7 @@ const BeneficiaryTransactionHistory = () => {
           withCredentials: true,
           params: {
             lastMonths: timeRange,
+            page: currentPage,
           },
         })
         .then((response) => {
@@ -107,8 +108,6 @@ const BeneficiaryTransactionHistory = () => {
     }
   }, [timeRange]);
 
-  console.log("Stats Data:", statsData);
-
   const filteredTransactions = (
     Array.isArray(transactionsData) ? transactionsData : transactions
   ).filter((tx) => {
@@ -128,6 +127,7 @@ const BeneficiaryTransactionHistory = () => {
     currentPage * itemsPerPage,
   );
 
+
   function handleNavClick(section) {
     switch (section) {
       case "MyRation":
@@ -145,14 +145,13 @@ const BeneficiaryTransactionHistory = () => {
   }
 
   return error == "" ? (
-    isLoading ? (
-      <div className="flex h-screen items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
-      </div>
-    ) : (
-      <div className="min-h-screen bg-gray-50">
-        <DashboardHeader />
-
+    <div className="min-h-screen bg-gray-50">
+      <DashboardHeader />
+      {isLoading ? (
+        <div className="flex h-screen items-center justify-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-blue-500"></div>
+        </div>
+      ) : (
         <div className="mx-auto max-w-6xl py-6">
           {/* Mobile Header */}
           <div className="flex items-center justify-between md:hidden mb-5">
@@ -302,7 +301,7 @@ const BeneficiaryTransactionHistory = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredTransactions.map((transaction, index) => (
+                  {paginatedTransactions.map((transaction, index) => (
                     <tr
                       key={index}
                       className="border-b border-gray-100 hover:bg-gray-50"
@@ -392,7 +391,7 @@ const BeneficiaryTransactionHistory = () => {
 
           {/* Mobile Cards */}
           <div className="mt-6 space-y-4 md:hidden">
-            {filteredTransactions.map((transaction, index) => (
+            {paginatedTransactions.map((transaction, index) => (
               <div
                 key={index}
                 className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
@@ -477,11 +476,8 @@ const BeneficiaryTransactionHistory = () => {
           <div className="mt-6 hidden items-center justify-between md:flex">
             <div className="text-sm text-gray-600">
               Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-              {Math.min(
-                currentPage * itemsPerPage,
-                filteredTransactions.length,
-              )}{" "}
-              of {filteredTransactions.length} transactions
+              {Math.min(currentPage * itemsPerPage, transactionsData.length)} of{" "}
+              {transactionsData.length} transactions
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -556,8 +552,8 @@ const BeneficiaryTransactionHistory = () => {
             </div>
           </div>
         </div>
-      </div>
-    )
+      )}
+    </div>
   ) : (
     <div className="flex flex-col h-screen items-center justify-center">
       <p className="text-red-500 text-lg font-semibold">{error}</p>

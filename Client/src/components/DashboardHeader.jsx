@@ -26,7 +26,6 @@ const DashboardHeader = () => {
     }
   }, []);
 
-  console.log("Account Info:", accountInfo);
   return (
     <header className="border-b border-slate-200 bg-white/90 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-2 py-4">
