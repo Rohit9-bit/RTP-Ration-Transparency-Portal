@@ -4,11 +4,6 @@ import cors from "cors";
 
 const app = express();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
-app.use(cookieParser());
-
 // CORS policy
 const allowedOrigins = [
   "https://rtp-ration-transparency-portal-one.vercel.app",
@@ -28,6 +23,11 @@ app.use(
     credentials: true,
   }),
 );
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static("public"));
+app.use(cookieParser());
 
 import userRouter from "./routes/beneficiaryAuth.route.js";
 import ownerRouter from "./routes/ownerAuth.route.js";
