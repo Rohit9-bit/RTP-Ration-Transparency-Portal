@@ -5,13 +5,19 @@ import cors from "cors";
 const app = express();
 
 // CORS policy
-// const allowedOrigins = [
-//   "https://rtp-ration-transparency-portal-one.vercel.app",
-//   "https://rtp-ration-transparency-portal-abaq.vercel.app",
-// ];
+const allowedOrigins = [
+  "https://rtp-ration-transparency-portal-one.vercel.app/",
+  "https://rtp-ration-transparency-portal-abaq.vercel.app",
+];
 app.use(
   cors({
-    origin: "*", // Replace with your frontend URL
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    }, // Replace with your frontend URL
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
