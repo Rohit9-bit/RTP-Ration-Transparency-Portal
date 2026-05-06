@@ -154,7 +154,6 @@ const PublicDashboard = () => {
     }
   }, [requestQuery]);
 
-  console.log("systemPerformanceMatrics: ", systemPerformanceMatrics);
 
   const metricCards = [
     {

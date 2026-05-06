@@ -63,6 +63,7 @@ const LoginBeneficiary = () => {
         )
         .then((response) => {
           // Handle successful login, e.g., redirect to dashboard
+          console.log("Login successful:", response.data);
           alert("Login successful! You are now redirecting to the dashboard.");
           navigate("/beneficiary/dashboard");
         })

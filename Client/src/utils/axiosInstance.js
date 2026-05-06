@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://rtp-ration-transparency-portal-abaq.vercel.app", // Replace with your API base URL
+  baseURL: "https://rtp-ration-transparency-portal-abaq.vercel.app/", // Replace with your API base URL
   timeout: 10000, // Set a timeout limit
   headers: {
     "Content-Type": "application/json",
@@ -19,7 +19,7 @@ axiosInstance.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // Handle unauthorized access
-          alert("You are not authorized. Please log in.");
+          alert(error.response.message);
           break;
         case 403:
           // Handle forbidden access
